@@ -1,0 +1,215 @@
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  password     String
+  twoFactorKey String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions      Session[]
+  name          String    @db.Text
+  emailVerified Boolean   @default(false)
+  image         String?   @db.Text
+  accounts      Account[]
+  services      Service[]
+  invoices      Invoice[]
+  clusters      Cluster[]
+
+  firstName     String    @db.Text
+  lastName      String    @db.Text
+  phoneCountry  String?   @db.VarChar(10)
+  phoneNumber   String?   @db.Text
+
+  companyName   String?   @db.Text
+  vatNumber     String?   @db.Text
+  billingAddress String?  @db.Text
+  billingAddress2 String? @db.Text
+  billingCity   String?  @db.Text
+  billingCountry String?  @db.VarChar(100)
+  billingProvince String? @db.Text
+  billingPostalCode String? @db.VarChar(20)
+
+  @@map("user")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  token     String   @unique
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?  @db.Text
+  userAgent String?  @db.Text
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String    @db.Text
+  providerId            String    @db.Text
+  userId                Int       // ← correspond à User.id
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?   @db.Text
+  password              String?   @db.Text
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String   @db.Text
+  value      String   @db.Text
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier(length: 191)])
+  @@map("verification")
+}
+
+model Offer {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  price       Decimal  @db.Decimal(10, 2)
+  period      String   @db.VarChar(50)
+  description String   @db.Text
+  servers     Int      @default(0)
+  group       Int      @default(0)
+  rules       Int      @default(0)
+  host        Boolean  @default(false)
+  logs        Boolean  @default(false)
+  stats       Boolean  @default(false)
+  support     String   @db.VarChar(100)
+  popular     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services    Service[]
+
+  @@map("offer")
+}
+
+model Service {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  offerId       Int
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offer         Offer    @relation(fields: [offerId], references: [id])
+  
+  name          String   @db.VarChar(100)
+  price         Decimal  @db.Decimal(10, 2)
+  period        String   @db.VarChar(50)
+  description   String   @db.Text
+  servers       Int      @default(0)
+  group         Int      @default(0)
+  rules         Int      @default(0)
+  host          Boolean  @default(false)
+  logs          Boolean  @default(false)
+  stats         Boolean  @default(false)
+  support       String   @db.VarChar(100)
+  
+  pricePaid     Decimal  @db.Decimal(10, 2)
+  paymentDate   DateTime @default(now())
+  durationMonths Int?   
+  expiresAt     DateTime? 
+  isLifetime    Boolean  @default(false)
+  
+  active        Boolean  @default(true)
+  
+  invoices      Invoice[]
+  clusters      Cluster[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([offerId])
+  @@map("service")
+}
+
+model Invoice {
+  id            Int      @id @default(autoincrement())
+  serviceId     Int
+  userId        Int
+  service       Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  invoiceName   String   @db.VarChar(100)
+  invoicePrefix String   @db.VarChar(10) 
+  invoiceNumber Int      
+  fullInvoiceNumber String @db.VarChar(50) 
+  paymentMethod String   @db.VarChar(50) 
+  price         Decimal  @db.Decimal(10, 2)
+  paymentDate   DateTime @default(now())
+  status        Int      @default(1) 
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceId])
+  @@unique([invoicePrefix, invoiceNumber])
+  @@map("invoice")
+}
+
+model Server {
+  id       Int      @id @default(autoincrement())
+  ip       String   @db.VarChar(45)
+  hostname String   @db.VarChar(255)
+  username String   @db.VarChar(100)
+  password String   @db.Text
+  
+  clusters Cluster[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("server")
+}
+
+model Cluster {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  serviceId Int
+  url       String   @db.Text
+  token     String   @db.Text
+  serverId  Int
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  server    Server   @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([serverId])
+  @@map("cluster")
+}
+
+
