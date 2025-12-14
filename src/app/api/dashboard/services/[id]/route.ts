@@ -21,17 +21,23 @@ export async function GET(
 
     const { id } = await params;
     const serviceId = parseInt(id);
-    const userId = session.user.id;
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
     // Récupérer le service avec ses clusters
     const service = await prisma.service.findFirst({
       where: {
         id: serviceId,
-        userId, // Vérifier que le service appartient à l'utilisateur
+        userId: userId as number, // Vérifier que le service appartient à l'utilisateur
       },
       include: {
         clusters: {
-          include: {
+          select: {
+            id: true,
+            url: true,
+            token: true,
+            username: true,
+            password: true,
+            createdAt: true,
             server: {
               select: {
                 id: true,
@@ -60,5 +66,6 @@ export async function GET(
     );
   }
 }
+
 
 

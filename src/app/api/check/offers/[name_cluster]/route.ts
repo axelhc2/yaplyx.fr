@@ -28,7 +28,21 @@ function getClientIP(request: NextRequest): string {
   }
   
   // Fallback sur l'IP de la requête
-  return request.ip || 'unknown';
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  const realIp = request.headers.get('x-real-ip');
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  if (realIp) {
+    return realIp;
+  }
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+  
+  return 'unknown';
 }
 
 /**
@@ -120,5 +134,6 @@ export async function GET(
     );
   }
 }
+
 
 

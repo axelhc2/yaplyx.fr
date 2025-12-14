@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = session.user.id;
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
     // Compter les services actifs (active = true)
     const activeServicesCount = await prisma.service.count({
       where: {
-        userId,
+        userId: userId as number,
         active: true,
       },
     });
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     // Compter les factures non payées (status = 0)
     const unpaidInvoicesCount = await prisma.invoice.count({
       where: {
-        userId,
+        userId: userId as number,
         status: 0,
       },
     });
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Compter les factures payées (status = 1)
     const paidInvoicesCount = await prisma.invoice.count({
       where: {
-        userId,
+        userId: userId as number,
         status: 1,
       },
     });
@@ -55,5 +55,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 

@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = session.user.id;
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
     // Récupérer toutes les factures de l'utilisateur avec les informations du service
     const invoices = await prisma.invoice.findMany({
       where: {
-        userId,
+        userId: userId as number,
       },
       include: {
         service: {
@@ -45,5 +45,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 

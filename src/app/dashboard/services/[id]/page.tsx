@@ -2,19 +2,31 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Server, Users, Shield, MessageCircle, Euro, ArrowLeft, CheckCircle2, XCircle, HardDrive, FileText, BarChart3 } from 'lucide-react';
+import { Server, Users, Shield, MessageCircle, Euro, ArrowLeft, CheckCircle2, XCircle, HardDrive, FileText, BarChart3, Play, Square, RotateCw, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { fetchWithCSRF } from '@/lib/csrf-client';
 
 interface Cluster {
   id: number;
   url: string;
   token: string;
+  username: string;
+  password: string;
   createdAt: string;
   server: {
     id: number;
     ip: string;
     hostname: string;
   };
+}
+
+interface ClusterStatus {
+  name: string;
+  status: 'online' | 'stopped';
+  uptime: number;
+  restarts: number;
+  memory: number;
+  cpu: number;
 }
 
 interface Service {
@@ -42,6 +54,12 @@ export default function ServiceDetailPage() {
   const params = useParams();
   const [loading, setLoading] = useState(true);
   const [service, setService] = useState<Service | null>(null);
+  const [clusterStatuses, setClusterStatuses] = useState<Record<number, ClusterStatus | null>>({});
+  const [loadingStatuses, setLoadingStatuses] = useState<Record<number, boolean>>({});
+  const [actionLoading, setActionLoading] = useState<Record<number, string | null>>({});
+  const [showPasswords, setShowPasswords] = useState<Record<number, boolean>>({});
+  const [screenshots, setScreenshots] = useState<Record<number, string | null>>({});
+  const [loadingScreenshots, setLoadingScreenshots] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     const loadService = async () => {
@@ -62,6 +80,13 @@ export default function ServiceDetailPage() {
         if (serviceResponse.ok) {
           const data = await serviceResponse.json();
           setService(data.service);
+          
+          // Charger les statuts des clusters
+          if (data.service.clusters && data.service.clusters.length > 0) {
+            loadClusterStatuses(data.service.clusters);
+            // Charger les screenshots
+            loadScreenshots(data.service.clusters);
+          }
         } else if (serviceResponse.status === 404) {
           router.push('/dashboard/services');
         }
@@ -74,6 +99,115 @@ export default function ServiceDetailPage() {
 
     loadService();
   }, [router, params]);
+
+  // Nettoyer les URLs d'objet lors du démontage
+  useEffect(() => {
+    return () => {
+      Object.values(screenshots).forEach(url => {
+        if (url) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [screenshots]);
+
+  const loadClusterStatuses = async (clusters: Cluster[]) => {
+    const statuses: Record<number, ClusterStatus | null> = {};
+    const loading: Record<number, boolean> = {};
+    
+    clusters.forEach(cluster => {
+      loading[cluster.id] = true;
+    });
+    
+    setLoadingStatuses(loading);
+
+    for (const cluster of clusters) {
+      try {
+        const response = await fetch(`/api/dashboard/cluster/${cluster.id}/status`);
+        if (response.ok) {
+          const data = await response.json();
+          statuses[cluster.id] = data.status;
+        } else {
+          statuses[cluster.id] = null;
+        }
+      } catch (error) {
+        console.error(`Erreur lors du chargement du statut du cluster ${cluster.id}:`, error);
+        statuses[cluster.id] = null;
+      } finally {
+        loading[cluster.id] = false;
+        setLoadingStatuses({ ...loading });
+      }
+    }
+    
+    setClusterStatuses(statuses);
+  };
+
+  const loadScreenshots = async (clusters: Cluster[]) => {
+    const loading: Record<number, boolean> = {};
+    
+    clusters.forEach(cluster => {
+      loading[cluster.id] = true;
+    });
+    
+    setLoadingScreenshots(loading);
+
+    for (const cluster of clusters) {
+      try {
+        const response = await fetch(`/api/dashboard/cluster/screenshot?clusterId=${cluster.id}&url=${encodeURIComponent(cluster.url)}`);
+        if (response.ok) {
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setScreenshots(prev => ({ ...prev, [cluster.id]: imageUrl }));
+        } else {
+          setScreenshots(prev => ({ ...prev, [cluster.id]: null }));
+        }
+      } catch (error) {
+        console.error(`Erreur lors du chargement du screenshot du cluster ${cluster.id}:`, error);
+        setScreenshots(prev => ({ ...prev, [cluster.id]: null }));
+      } finally {
+        loading[cluster.id] = false;
+        setLoadingScreenshots({ ...loading });
+      }
+    }
+  };
+
+  const handleClusterAction = async (clusterId: number, action: 'start' | 'stop' | 'restart') => {
+    setActionLoading(prev => ({ ...prev, [clusterId]: action }));
+
+    try {
+      let response;
+      
+      if (action === 'restart') {
+        // Restart = stop puis start
+        // On fait juste start (comme demandé)
+        response = await fetchWithCSRF(`/api/dashboard/cluster/${clusterId}/start`, {
+          method: 'POST',
+        });
+      } else {
+        response = await fetchWithCSRF(`/api/dashboard/cluster/${clusterId}/${action}`, {
+          method: 'POST',
+        });
+      }
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Recharger le statut après l'action
+        setTimeout(() => {
+          if (service?.clusters) {
+            loadClusterStatuses(service.clusters);
+          }
+        }, 1000);
+      } else {
+        alert(data.error || 'Une erreur est survenue');
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de l\'action:', error);
+      alert('Une erreur est survenue');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [clusterId]: null }));
+    }
+  };
 
   if (loading) {
     return (
@@ -244,49 +378,226 @@ export default function ServiceDetailPage() {
                 </button>
               </div>
             ) : (
-              <div className="space-y-4">
-                {service.clusters.map((cluster) => (
-                  <div
-                    key={cluster.id}
-                    className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                          Cluster #{cluster.id}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {service.clusters.map((cluster) => {
+                  const status = clusterStatuses[cluster.id];
+                  const isLoadingStatus = loadingStatuses[cluster.id];
+                  const isActionLoading = actionLoading[cluster.id];
+                  const isOnline = status?.status === 'online';
+                  const isStopped = status?.status === 'stopped';
+                  const showPassword = showPasswords[cluster.id] || false;
+
+                  return (
+                    <>
+                      {/* Carte principale du cluster */}
+                      <div
+                        key={cluster.id}
+                        className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]"
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400">URL:</span>
+                                <a
+                                  href={`http://${cluster.url}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-[#d23f26] hover:underline font-mono"
+                                >
+                                  {cluster.url}
+                                </a>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-600 dark:text-gray-400">Créé le:</span>
+                                <span className="text-gray-900 dark:text-white">
+                                  {new Date(cluster.createdAt).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            {isLoadingStatus ? (
+                              <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-900/20">
+                                <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                  Chargement...
+                                </span>
+                              </div>
+                            ) : (
+                              <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${
+                                isOnline 
+                                  ? 'bg-green-100 dark:bg-green-900/20' 
+                                  : 'bg-red-100 dark:bg-red-900/20'
+                              }`}>
+                                <div className={`w-2 h-2 rounded-full ${
+                                  isOnline ? 'bg-green-500' : 'bg-red-500'
+                                }`}></div>
+                                <span className={`text-xs font-medium ${
+                                  isOnline 
+                                    ? 'text-green-800 dark:text-green-400' 
+                                    : 'text-red-800 dark:text-red-400'
+                                }`}>
+                                  {isOnline ? 'En ligne' : 'Arrêté'}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Boutons d'action */}
+                        <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200/50 dark:border-[#1A1A1A]">
+                          {isOnline ? (
+                            <>
+                              <button
+                                onClick={() => handleClusterAction(cluster.id, 'stop')}
+                                disabled={!!isActionLoading}
+                                className="flex-1 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                              >
+                                {isActionLoading === 'stop' ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    Arrêt...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Square className="w-3.5 h-3.5" />
+                                    Arrêter
+                                  </>
+                                )}
+                              </button>
+                              <button
+                                onClick={() => handleClusterAction(cluster.id, 'restart')}
+                                disabled={!!isActionLoading}
+                                className="flex-1 px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                              >
+                                {isActionLoading === 'restart' ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    Redémarrage...
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCw className="w-3.5 h-3.5" />
+                                    Redémarrer
+                                  </>
+                                )}
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => handleClusterAction(cluster.id, 'start')}
+                              disabled={!!isActionLoading}
+                              className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                            >
+                              {isActionLoading === 'start' ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  Démarrage...
+                                </>
+                              ) : (
+                                <>
+                                  <Play className="w-3.5 h-3.5" />
+                                  Démarrer
+                                </>
+                              )}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Carte des informations de connexion */}
+                      <div className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                          Informations de connexion
                         </h3>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 dark:text-gray-400">URL:</span>
-                            <span className="text-gray-900 dark:text-white font-mono">{cluster.url}</span>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                              Nom d'utilisateur
+                            </label>
+                            <div className="px-3 py-2 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#1A1A1A] rounded-lg">
+                              <span className="text-sm text-gray-900 dark:text-white font-mono">
+                                {cluster.username || 'N/A'}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 dark:text-gray-400">Serveur:</span>
-                            <span className="text-gray-900 dark:text-white">{cluster.server.hostname} ({cluster.server.ip})</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-gray-600 dark:text-gray-400">Créé le:</span>
-                            <span className="text-gray-900 dark:text-white">
-                              {new Date(cluster.createdAt).toLocaleDateString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                              Mot de passe
+                            </label>
+                            <div className="relative">
+                              <div 
+                                onClick={() => setShowPasswords(prev => ({ ...prev, [cluster.id]: !prev[cluster.id] }))}
+                                className="px-3 py-2 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#1A1A1A] rounded-lg cursor-pointer flex items-center justify-between group"
+                              >
+                                <span 
+                                  className={`text-sm font-mono ${
+                                    showPassword 
+                                      ? 'text-gray-900 dark:text-white' 
+                                      : 'text-gray-900 dark:text-white blur-sm select-none'
+                                  }`}
+                                >
+                                  {cluster.password || 'N/A'}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/20">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="text-xs font-medium text-green-800 dark:text-green-400">
-                          Actif
-                        </span>
+
+                      {/* Screenshot du site */}
+                      <div className="lg:col-span-2 mt-4">
+                        <div className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                            Aperçu du site
+                          </h3>
+                          {loadingScreenshots[cluster.id] ? (
+                            <div className="flex items-center justify-center py-12">
+                              <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+                              <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
+                                Capture en cours...
+                              </span>
+                            </div>
+                          ) : screenshots[cluster.id] ? (
+                            <div className="relative rounded-lg overflow-hidden border border-gray-200 dark:border-[#1A1A1A] bg-white dark:bg-[#0A0A0A]">
+                              <img
+                                src={screenshots[cluster.id]!}
+                                alt={`Aperçu de ${cluster.url}`}
+                                className="w-full h-auto"
+                                onError={() => {
+                                  setScreenshots(prev => ({ ...prev, [cluster.id]: null }));
+                                }}
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+                              <span className="text-sm">
+                                Impossible de charger l'aperçu
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    </>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -295,5 +606,6 @@ export default function ServiceDetailPage() {
     </div>
   );
 }
+
 
 

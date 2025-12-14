@@ -22,14 +22,110 @@ export default function CreateClusterPage() {
   const [serverInfo, setServerInfo] = useState<ServerInfo | null>(null);
   const [dnsVerified, setDnsVerified] = useState<boolean | null>(null);
   const [dnsError, setDnsError] = useState<string | null>(null);
+  const [creatingDomain, setCreatingDomain] = useState(false);
+  const [domainCreated, setDomainCreated] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [installationSuccess, setInstallationSuccess] = useState(false);
+  const [installationError, setInstallationError] = useState<string | null>(null);
 
-  // Générer un sous-domaine aléatoire pour .yaplyx.online
+  // Créer automatiquement le domaine .yaplyx.online quand on sélectionne cette option
   useEffect(() => {
-    if (domainType === 'yaplyx' && !yaplyxDomain) {
-      const randomId = Math.floor(Math.random() * 100000);
-      setYaplyxDomain(`app${randomId}.yaplyx.online`);
+    if (domainType === 'yaplyx' && !yaplyxDomain && serverInfo) {
+      const createYaplyxDomain = async () => {
+        const randomId = Math.floor(Math.random() * 100000);
+        const generatedDomain = `app${randomId}.yaplyx.online`;
+        
+        setCreatingDomain(true);
+        setDnsError(null);
+        
+        try {
+          const response = await fetchWithCSRF('/api/dashboard/create-yaplyx-domain', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              subdomain: generatedDomain,
+              serverIP: serverInfo.ip,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            setYaplyxDomain(generatedDomain);
+            setDomainCreated(true);
+            setDnsError(null);
+          } else {
+            setDnsError(data.error || 'Erreur lors de la création du domaine');
+            setDomainCreated(false);
+          }
+        } catch (error: any) {
+          setDnsError('Erreur lors de la création du domaine');
+          setDomainCreated(false);
+        } finally {
+          setCreatingDomain(false);
+        }
+      };
+
+      createYaplyxDomain();
     }
-  }, [domainType, yaplyxDomain]);
+  }, [domainType, serverInfo]);
+
+  const handleInstallCluster = async () => {
+    if (!serverInfo || !params?.id) {
+      return;
+    }
+
+    const domain = domainType === 'yaplyx' ? yaplyxDomain : customDomain;
+    
+    if (!domain) {
+      return;
+    }
+
+    // Pour domaine personnalisé, vérifier que DNS est validé
+    if (domainType === 'custom' && !dnsVerified) {
+      setInstallationError('Veuillez d\'abord vérifier l\'enregistrement DNS');
+      return;
+    }
+
+    setInstalling(true);
+    setInstallationError(null);
+
+    try {
+      const response = await fetchWithCSRF('/api/dashboard/install-cluster', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          serviceId: params.id,
+          domain: domain,
+          serverId: serverInfo.id,
+          domainType: domainType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        setInstallationSuccess(true);
+        setInstallationError(null);
+        // Rediriger vers la page du service après 2 secondes
+        setTimeout(() => {
+          router.push(`/dashboard/services/${params.id}`);
+        }, 2000);
+      } else {
+        setInstallationSuccess(false);
+        setInstallationError(data.error || 'Une erreur est survenue lors de l\'installation');
+      }
+    } catch (error: any) {
+      setInstallationSuccess(false);
+      setInstallationError('Une erreur est survenue lors de l\'installation');
+    } finally {
+      setInstalling(false);
+    }
+  };
 
   useEffect(() => {
     const loadServer = async () => {
@@ -265,7 +361,7 @@ export default function CreateClusterPage() {
               <button
                 onClick={handleVerifyDNS}
                 disabled={!customDomain || verifying}
-                className="w-full px-6 py-3 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-xl font-semibold hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full px-6 py-3 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-xl font-semibold hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
               >
                 {verifying ? (
                   <>
@@ -277,6 +373,23 @@ export default function CreateClusterPage() {
                 )}
               </button>
 
+              {dnsVerified && (
+                <button
+                  onClick={handleInstallCluster}
+                  disabled={installing}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-800 transition-all shadow-lg shadow-green-600/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {installing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Installation en cours...
+                    </>
+                  ) : (
+                    'Installer le cluster'
+                  )}
+                </button>
+              )}
+
               {dnsVerified === true && (
                 <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -287,10 +400,28 @@ export default function CreateClusterPage() {
               )}
 
               {dnsVerified === false && (
-                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl flex items-center gap-2">
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl flex items-center gap-2 mb-4">
                   <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   <span className="text-sm text-red-800 dark:text-red-400">
                     {dnsError || 'L\'enregistrement DNS ne pointe pas vers la bonne IP'}
+                  </span>
+                </div>
+              )}
+
+              {installationError && (
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl flex items-center gap-2">
+                  <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <span className="text-sm text-red-800 dark:text-red-400">
+                    {installationError}
+                  </span>
+                </div>
+              )}
+
+              {installationSuccess && (
+                <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl flex items-center gap-2">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="text-sm text-green-800 dark:text-green-400">
+                    Installation réussie ! Redirection en cours...
                   </span>
                 </div>
               )}
@@ -314,19 +445,96 @@ export default function CreateClusterPage() {
                       <p className="text-lg font-bold text-[#d23f26] font-mono">
                         {yaplyxDomain}
                       </p>
+                      {serverInfo && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          IP : {serverInfo.ip}
+                        </p>
+                      )}
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-[#d23f26] flex items-center justify-center">
-                      <CheckCircle2 className="w-6 h-6 text-white" />
-                    </div>
+                    {domainCreated ? (
+                      <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center">
+                        <CheckCircle2 className="w-6 h-6 text-white" />
+                      </div>
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-gray-200 dark:bg-[#1A1A1A] flex items-center justify-center">
+                        <Server className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/20 rounded-xl p-4">
-                <p className="text-sm text-blue-900 dark:text-blue-400">
-                  <strong>Note :</strong> Ce domaine sera automatiquement configuré et prêt à l'emploi. Aucune configuration DNS n'est nécessaire.
-                </p>
-              </div>
+              {creatingDomain && (
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/20 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+                    <p className="text-sm text-blue-800 dark:text-blue-400">
+                      Création du domaine en cours...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {domainCreated && yaplyxDomain && (
+                <>
+                  <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl p-4 mb-4">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <p className="text-sm text-green-800 dark:text-green-400">
+                        Le domaine a été créé avec succès !
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={handleInstallCluster}
+                    disabled={installing}
+                    className="w-full px-6 py-3 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-xl font-semibold hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-4"
+                  >
+                    {installing ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Installation en cours...
+                      </>
+                    ) : (
+                      'Installer le cluster'
+                    )}
+                  </button>
+                </>
+              )}
+
+              {dnsError && (
+                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <p className="text-sm text-red-800 dark:text-red-400">
+                      {dnsError}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {installationSuccess && (
+                <div className="bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <p className="text-sm text-green-800 dark:text-green-400">
+                      Installation réussie ! Redirection en cours...
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {installationError && (
+                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl p-4 mb-4">
+                  <div className="flex items-center gap-2">
+                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <p className="text-sm text-red-800 dark:text-red-400">
+                      {installationError}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -334,5 +542,6 @@ export default function CreateClusterPage() {
     </div>
   );
 }
+
 
 

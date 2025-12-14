@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const userId = session.user.id;
+    const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
     // Récupérer tous les services de l'utilisateur avec leurs clusters
     const services = await prisma.service.findMany({
       where: {
-        userId,
+        userId: userId as number,
       },
       include: {
         clusters: {
@@ -44,5 +44,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 
