@@ -26,6 +26,8 @@ model User {
   services      Service[]
   invoices      Invoice[]
   clusters      Cluster[]
+  supportTickets Support[]
+  supportReplies SupportReply[]
 
   firstName     String    @db.Text
   lastName      String    @db.Text
@@ -213,6 +215,40 @@ model Cluster {
   @@index([serviceId])
   @@index([serverId])
   @@map("cluster")
+}
+
+model Support {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  subject   String   @db.Text
+  status    String   @db.VarChar(50)
+  services  String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies   SupportReply[]
+
+  @@index([userId])
+  @@map("support")
+}
+
+model SupportReply {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  userId    Int
+  author    String   @db.Text
+  text      String   @db.Text
+  img       Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ticket    Support  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId])
+  @@index([userId])
+  @@map("support_replies")
 }
 
 

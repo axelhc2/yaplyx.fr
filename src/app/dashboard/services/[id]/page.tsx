@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Server, Users, Shield, MessageCircle, Euro, ArrowLeft, CheckCircle2, XCircle, HardDrive, FileText, BarChart3, Play, Square, RotateCw, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import { fetchWithCSRF } from '@/lib/csrf-client';
+import { useTranslation } from '@/lib/i18n';
 
 interface Cluster {
   id: number;
@@ -50,6 +51,7 @@ interface Service {
 }
 
 export default function ServiceDetailPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(true);
@@ -220,9 +222,9 @@ export default function ServiceDetailPage() {
   if (!service) {
     return (
       <div className="bg-white dark:bg-black">
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-12 text-center">
+            <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 sm:p-8 lg:p-12 text-center">
               <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Service introuvable
               </p>
@@ -230,7 +232,7 @@ export default function ServiceDetailPage() {
                 href="/dashboard/services"
                 className="text-[#d23f26] hover:underline"
               >
-                Retour à la liste des services
+                {t('dashboard_service_detail_back_list')}
               </Link>
             </div>
           </div>
@@ -243,7 +245,7 @@ export default function ServiceDetailPage() {
 
   return (
     <div className="bg-white dark:bg-black">
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
@@ -252,7 +254,7 @@ export default function ServiceDetailPage() {
               className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#d23f26] transition-colors mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
-              Retour aux services
+              {t('dashboard_service_detail_back')}
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               {service.name}
@@ -267,7 +269,7 @@ export default function ServiceDetailPage() {
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Server className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Serveurs</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_servers')}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {service.servers}
@@ -277,7 +279,7 @@ export default function ServiceDetailPage() {
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Groupes</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_groups')}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {service.group}
@@ -287,7 +289,7 @@ export default function ServiceDetailPage() {
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Règles</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_rules')}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {service.rules}
@@ -297,7 +299,7 @@ export default function ServiceDetailPage() {
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
               <div className="flex items-center gap-3 mb-2">
                 <Euro className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Prix</span>
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_price')}</span>
               </div>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {Number(service.price).toFixed(2)}
@@ -308,7 +310,7 @@ export default function ServiceDetailPage() {
           {/* Features */}
           <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Fonctionnalités
+              {t('dashboard_service_detail_features')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-3">
@@ -317,7 +319,7 @@ export default function ServiceDetailPage() {
                 ) : (
                   <XCircle className="w-5 h-5 text-gray-400" />
                 )}
-                <span className="text-sm text-gray-900 dark:text-white">Host</span>
+                <span className="text-sm text-gray-900 dark:text-white">{t('dashboard_service_detail_host')}</span>
               </div>
               <div className="flex items-center gap-3">
                 {service.logs ? (
@@ -325,7 +327,7 @@ export default function ServiceDetailPage() {
                 ) : (
                   <XCircle className="w-5 h-5 text-gray-400" />
                 )}
-                <span className="text-sm text-gray-900 dark:text-white">Logs</span>
+                <span className="text-sm text-gray-900 dark:text-white">{t('dashboard_service_detail_logs')}</span>
               </div>
               <div className="flex items-center gap-3">
                 {service.stats ? (
@@ -333,21 +335,21 @@ export default function ServiceDetailPage() {
                 ) : (
                   <XCircle className="w-5 h-5 text-gray-400" />
                 )}
-                <span className="text-sm text-gray-900 dark:text-white">Stats</span>
+                <span className="text-sm text-gray-900 dark:text-white">{t('dashboard_service_detail_stats')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <MessageCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm text-gray-900 dark:text-white">Support: {service.support}</span>
+                <span className="text-sm text-gray-900 dark:text-white">{t('dashboard_service_detail_support')} {service.support}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className={`w-3 h-3 rounded-full ${service.active ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                 <span className="text-sm text-gray-900 dark:text-white">
-                  {service.active ? 'Actif' : 'Inactif'}
+                  {service.active ? t('dashboard_service_detail_active') : t('dashboard_service_detail_inactive')}
                 </span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Période: {service.period}
+                  {t('dashboard_service_detail_period')} {service.period}
                 </span>
               </div>
             </div>
@@ -356,7 +358,7 @@ export default function ServiceDetailPage() {
           {/* Cluster Status */}
           <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-8">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              État du cluster
+              {t('dashboard_service_detail_cluster_status')}
             </h2>
             
             {!hasCluster ? (
@@ -365,16 +367,16 @@ export default function ServiceDetailPage() {
                   <Server className="w-8 h-8 text-orange-600 dark:text-orange-400" />
                 </div>
                 <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Vous devez installer votre cluster
+                  {t('dashboard_service_detail_no_cluster_title')}
                 </p>
                 <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  Aucun cluster n'est actuellement associé à ce service
+                  {t('dashboard_service_detail_no_cluster_desc')}
                 </p>
                 <button
                   onClick={() => router.push(`/dashboard/services/create/cluster/${service.id}`)}
                   className="px-6 py-3 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-xl font-semibold hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30"
                 >
-                  Installer votre cluster
+                  {t('dashboard_service_detail_install')}
                 </button>
               </div>
             ) : (
@@ -409,7 +411,7 @@ export default function ServiceDetailPage() {
                                 </a>
                               </div>
                               <div className="flex items-center gap-2">
-                                <span className="text-gray-600 dark:text-gray-400">Créé le:</span>
+                                <span className="text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_created')}</span>
                                 <span className="text-gray-900 dark:text-white">
                                   {new Date(cluster.createdAt).toLocaleDateString('fr-FR', {
                                     day: '2-digit',
@@ -427,7 +429,7 @@ export default function ServiceDetailPage() {
                               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-900/20">
                                 <Loader2 className="w-3 h-3 animate-spin text-gray-400" />
                                 <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                  Chargement...
+                                  {t('dashboard_service_detail_loading')}
                                 </span>
                               </div>
                             ) : (
@@ -444,7 +446,7 @@ export default function ServiceDetailPage() {
                                     ? 'text-green-800 dark:text-green-400' 
                                     : 'text-red-800 dark:text-red-400'
                                 }`}>
-                                  {isOnline ? 'En ligne' : 'Arrêté'}
+                                  {isOnline ? t('dashboard_service_detail_online') : t('dashboard_service_detail_stopped')}
                                 </span>
                               </div>
                             )}
@@ -463,12 +465,12 @@ export default function ServiceDetailPage() {
                                 {isActionLoading === 'stop' ? (
                                   <>
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    Arrêt...
+                                    {t('dashboard_service_detail_stopping')}
                                   </>
                                 ) : (
                                   <>
                                     <Square className="w-3.5 h-3.5" />
-                                    Arrêter
+                                    {t('dashboard_service_detail_stop')}
                                   </>
                                 )}
                               </button>
@@ -480,12 +482,12 @@ export default function ServiceDetailPage() {
                                 {isActionLoading === 'restart' ? (
                                   <>
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                    Redémarrage...
+                                    {t('dashboard_service_detail_restarting')}
                                   </>
                                 ) : (
                                   <>
                                     <RotateCw className="w-3.5 h-3.5" />
-                                    Redémarrer
+                                    {t('dashboard_service_detail_restart')}
                                   </>
                                 )}
                               </button>
@@ -499,12 +501,12 @@ export default function ServiceDetailPage() {
                               {isActionLoading === 'start' ? (
                                 <>
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  Démarrage...
+                                  {t('dashboard_service_detail_starting')}
                                 </>
                               ) : (
                                 <>
                                   <Play className="w-3.5 h-3.5" />
-                                  Démarrer
+                                  {t('dashboard_service_detail_start')}
                                 </>
                               )}
                             </button>
@@ -515,12 +517,12 @@ export default function ServiceDetailPage() {
                       {/* Carte des informations de connexion */}
                       <div className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                          Informations de connexion
+                          {t('dashboard_service_detail_connection')}
                         </h3>
                         <div className="space-y-4">
                           <div>
                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                              Nom d'utilisateur
+                              {t('dashboard_service_detail_username')}
                             </label>
                             <div className="px-3 py-2 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#1A1A1A] rounded-lg">
                               <span className="text-sm text-gray-900 dark:text-white font-mono">
@@ -530,7 +532,7 @@ export default function ServiceDetailPage() {
                           </div>
                           <div>
                             <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-                              Mot de passe
+                              {t('dashboard_service_detail_password')}
                             </label>
                             <div className="relative">
                               <div 
@@ -566,13 +568,13 @@ export default function ServiceDetailPage() {
                       <div className="lg:col-span-2 mt-4">
                         <div className="bg-gray-50/50 dark:bg-[#0F0F0F] rounded-xl p-6 border border-gray-200/50 dark:border-[#1A1A1A]">
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                            Aperçu du site
+                            {t('dashboard_service_detail_preview')}
                           </h3>
                           {loadingScreenshots[cluster.id] ? (
                             <div className="flex items-center justify-center py-12">
                               <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
                               <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                                Capture en cours...
+                                {t('dashboard_service_detail_capturing')}
                               </span>
                             </div>
                           ) : screenshots[cluster.id] ? (
@@ -589,7 +591,7 @@ export default function ServiceDetailPage() {
                           ) : (
                             <div className="flex items-center justify-center py-12 text-gray-500 dark:text-gray-400">
                               <span className="text-sm">
-                                Impossible de charger l'aperçu
+                                {t('dashboard_service_detail_preview_error')}
                               </span>
                             </div>
                           )}
@@ -606,6 +608,11 @@ export default function ServiceDetailPage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

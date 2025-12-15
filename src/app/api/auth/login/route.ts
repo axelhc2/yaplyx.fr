@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { t } from '@/lib/i18n-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +12,7 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password) {
       return NextResponse.json(
-        { error: 'L\'email et le mot de passe sont requis' },
+        { error: t(request, 'api_error_login_required') },
         { status: 400 }
       );
     }
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
+        { error: t(request, 'api_error_login_incorrect') },
         { status: 401 }
       );
     }
@@ -33,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { error: 'Email ou mot de passe incorrect' },
+        { error: t(request, 'api_error_login_incorrect') },
         { status: 401 }
       );
     }
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Erreur lors de la connexion:', error);
     return NextResponse.json(
-      { error: error.message || 'Erreur lors de la connexion' },
+      { error: error.message || t(request, 'api_error_login') },
       { status: 500 }
     );
   }

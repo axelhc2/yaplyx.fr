@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { t } from '@/lib/i18n-server';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -7,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   if (!email) {
     return NextResponse.json(
-      { error: 'Email requis' },
+      { error: t(request, 'api_error_email_required') },
       { status: 400 }
     );
   }
@@ -20,6 +21,11 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ hash });
 }
+
+
+
+
+
 
 
 

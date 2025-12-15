@@ -3,8 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, ArrowRight, Settings, Shield, Server, Key, Plus, Download, Users, FileText, Target, Lock } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Features() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
   const [visibleCards, setVisibleCards] = useState<number[]>([]);
 
@@ -21,62 +23,62 @@ export default function Features() {
   const steps = [
     {
       icon: Settings,
-      title: "Choix de l'offre",
-      description: "Sélectionnez l'offre adaptée à vos besoins",
+      title: t('features_step_1_title'),
+      description: t('features_step_1_desc'),
       color: "text-blue-600 dark:text-blue-500"
     },
     {
       icon: Shield,
-      title: "Mise en place du cluster",
-      description: "Configuration automatique de votre infrastructure",
+      title: t('features_step_2_title'),
+      description: t('features_step_2_desc'),
       color: "text-purple-600 dark:text-purple-500"
     },
     {
       icon: Settings,
-      title: "Configuration dashboard",
-      description: "Interface personnalisée selon vos préférences",
+      title: t('features_step_3_title'),
+      description: t('features_step_3_desc'),
       color: "text-indigo-600 dark:text-indigo-500"
     },
     {
       icon: Key,
-      title: "Connexion sécurisée",
-      description: "Authentification multi-facteurs et chiffrement",
+      title: t('features_step_4_title'),
+      description: t('features_step_4_desc'),
       color: "text-green-600 dark:text-green-500"
     },
     {
       icon: Plus,
-      title: "Ajout des serveurs",
-      description: "Intégration facile de vos serveurs existants",
+      title: t('features_step_5_title'),
+      description: t('features_step_5_desc'),
       color: "text-teal-600 dark:text-teal-500"
     },
     {
       icon: Download,
-      title: "Installation automatique",
-      description: "Déploiement des agents en un clic",
+      title: t('features_step_6_title'),
+      description: t('features_step_6_desc'),
       color: "text-cyan-600 dark:text-cyan-500"
     },
     {
       icon: Users,
-      title: "Création groupe sécurité",
-      description: "Organisation des équipes et permissions",
+      title: t('features_step_7_title'),
+      description: t('features_step_7_desc'),
       color: "text-orange-600 dark:text-orange-500"
     },
     {
       icon: FileText,
-      title: "Définition des règles",
-      description: "Configuration des politiques de sécurité",
+      title: t('features_step_8_title'),
+      description: t('features_step_8_desc'),
       color: "text-red-600 dark:text-red-500"
     },
     {
       icon: Target,
-      title: "Application ciblée",
-      description: "Déploiement précis sur vos environnements",
+      title: t('features_step_9_title'),
+      description: t('features_step_9_desc'),
       color: "text-pink-600 dark:text-pink-500"
     },
     {
       icon: Lock,
-      title: "Sécurité maximale",
-      description: "Protection avancée et monitoring continu",
+      title: t('features_step_10_title'),
+      description: t('features_step_10_desc'),
       color: "text-[#d23f26]"
     }
   ];
@@ -135,8 +137,8 @@ export default function Features() {
         <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4 relative z-10">
-              Installation en <span className="relative">
-                <span className="text-[#d23f26]">10 étapes</span>
+              {t('features_title')} <span className="relative">
+                <span className="text-[#d23f26]">{t('features_title_highlight')}</span>
                 {/* Soulignement ondulé animé */}
                 <svg
                   className="absolute -bottom-1 left-0 w-full h-3 text-[#d23f26] animate-pulse"
@@ -160,7 +162,7 @@ export default function Features() {
           </div>
 
           <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto relative">
-            Une expérience simple et fluide. Vous êtes opérationnel en moins de 30 minutes.
+            {t('features_description')}
 
             {/* Ligne décorative sous le paragraphe */}
             <svg className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-32 h-2 text-slate-300 dark:text-gray-600" viewBox="0 0 128 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -252,7 +254,7 @@ export default function Features() {
           <div className="inline-flex items-center gap-3 px-6 py-3 bg-white dark:bg-[#050505] rounded-xl border border-gray-200/50 dark:border-gray-800/50 shadow-lg">
             <CheckCircle2 className="w-5 h-5 text-[#d23f26]" />
             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-              Prêt en moins de <span className="text-[#d23f26]">30 minutes</span>
+              {t('features_ready')} <span className="text-[#d23f26]">{t('features_ready_minutes')}</span>
             </p>
           </div>
         </div>

@@ -31,12 +31,22 @@ function SuccessPageContent() {
           const orderData = JSON.parse(decodeURIComponent(orderCookie.split('=')[1]));
           setOrder(orderData);
           
-          // Récupérer l'offre
-          const offerResponse = await fetch('/api/offers');
-          if (offerResponse.ok) {
-            const offersData = await offerResponse.json();
-            const foundOffer = offersData.offers.find((o: any) => o.id === orderData.offerId);
-            setOffer(foundOffer);
+          // Récupérer l'offre selon le type de commande
+          if (orderData.type === 'renew' && orderData.serviceId) {
+            // Pour un renouvellement, récupérer l'offre depuis le service
+            const serviceResponse = await fetch(`/api/dashboard/services/${orderData.serviceId}/renew`);
+            if (serviceResponse.ok) {
+              const serviceData = await serviceResponse.json();
+              setOffer(serviceData.service.offer);
+            }
+          } else {
+            // Pour une nouvelle commande, récupérer depuis les offres
+            const offerResponse = await fetch('/api/offers');
+            if (offerResponse.ok) {
+              const offersData = await offerResponse.json();
+              const foundOffer = offersData.offers.find((o: any) => o.id === orderData.offerId);
+              setOffer(foundOffer);
+            }
           }
           
           // Récupérer la session pour obtenir l'utilisateur
@@ -74,43 +84,79 @@ function SuccessPageContent() {
         const sessionData = await sessionResponse.json();
         const user = sessionData.user;
 
-        // Créer le service et la facture
         const { fetchWithCSRF } = await import('@/lib/csrf-client');
-        const createResponse = await fetchWithCSRF('/api/services/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            userId: user.id,
-            offerId: orderData.offerId,
-            pricePaid: orderData.price,
-            durationMonths: orderData.duration || null,
-            paymentMethod: 'stripe',
-            orderId: params.uuid,
-          }),
-        });
+        let createData: any;
 
-        // Vérifier si la réponse est vide ou 404
-        if (createResponse.status === 404 || !createResponse.ok) {
-          console.error('Erreur lors de la création du service');
-          setLoading(false);
-          return;
+        // Vérifier si c'est un renouvellement ou une nouvelle commande
+        if (orderData.type === 'renew' && orderData.serviceId) {
+          // Renouvellement de service
+          const renewResponse = await fetchWithCSRF('/api/services/renew', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              serviceId: orderData.serviceId,
+              pricePaid: orderData.price,
+              durationMonths: orderData.duration || null,
+              paymentMethod: 'stripe',
+              orderId: params.uuid,
+            }),
+          });
+
+          if (renewResponse.status === 404 || !renewResponse.ok) {
+            console.error('Erreur lors du renouvellement du service');
+            setLoading(false);
+            return;
+          }
+
+          createData = await renewResponse.json();
+          
+          // Récupérer l'offre depuis le service renouvelé
+          const serviceResponse = await fetch(`/api/dashboard/services/${orderData.serviceId}/renew`);
+          if (serviceResponse.ok) {
+            const serviceData = await serviceResponse.json();
+            setOffer(serviceData.service.offer);
+          }
+        } else {
+          // Création d'un nouveau service
+          const createResponse = await fetchWithCSRF('/api/services/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              offerId: orderData.offerId,
+              pricePaid: orderData.price,
+              durationMonths: orderData.duration || null,
+              paymentMethod: 'stripe',
+              orderId: params.uuid,
+            }),
+          });
+
+          if (createResponse.status === 404 || !createResponse.ok) {
+            console.error('Erreur lors de la création du service');
+            setLoading(false);
+            return;
+          }
+
+          createData = await createResponse.json();
+          
+          // Récupérer l'offre pour le récapitulatif
+          const offerResponse = await fetch('/api/offers');
+          if (offerResponse.ok) {
+            const offersData = await offerResponse.json();
+            const foundOffer = offersData.offers.find((o: any) => o.id === orderData.offerId);
+            setOffer(foundOffer);
+          }
         }
 
-        const createData = await createResponse.json();
         setServiceCreated(true);
         setInvoice(createData.invoice);
         setOrder(orderData);
         setUser(user);
-          
-        // Récupérer l'offre pour le récapitulatif
-        const offerResponse = await fetch('/api/offers');
-        if (offerResponse.ok) {
-          const offersData = await offerResponse.json();
-          const foundOffer = offersData.offers.find((o: any) => o.id === orderData.offerId);
-          setOffer(foundOffer);
-        }
           
         // Marquer comme créé pour éviter les doublons
         sessionStorage.setItem(`service_created_${params.uuid}`, 'true');
@@ -177,7 +223,7 @@ function SuccessPageContent() {
               {loading && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-lg p-3 mb-4">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    Création de votre service en cours...
+                    {order && order.type === 'renew' ? 'Renouvellement de votre service en cours...' : 'Création de votre service en cours...'}
                   </p>
                 </div>
               )}
@@ -185,7 +231,9 @@ function SuccessPageContent() {
               {serviceCreated && invoice && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50 rounded-lg p-3 mb-4">
                   <p className="text-sm text-green-800 dark:text-green-200">
-                    ✓ Votre service a été créé et votre facture a été générée.
+                    {order?.type === 'renew' 
+                      ? '✓ Votre service a été renouvelé et votre facture a été générée.'
+                      : '✓ Votre service a été créé et votre facture a été générée.'}
                   </p>
                 </div>
               )}
@@ -203,7 +251,7 @@ function SuccessPageContent() {
               {order && offer && (
                 <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Récapitulatif de votre commande
+                  {order.type === 'renew' ? 'Récapitulatif de votre renouvellement' : 'Récapitulatif de votre commande'}
                 </h2>
 
                 <div className="space-y-4">

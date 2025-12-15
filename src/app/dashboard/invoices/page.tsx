@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileText, Euro, Calendar, CheckCircle2, XCircle, Download, ArrowRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 interface Invoice {
   id: number;
@@ -20,6 +21,7 @@ interface Invoice {
 }
 
 export default function InvoicesPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -63,7 +65,7 @@ export default function InvoicesPage() {
       });
       
       if (!response.ok) {
-        throw new Error('Erreur lors de la génération du PDF');
+        throw new Error(t('dashboard_invoices_error_pdf'));
       }
       
       // Récupérer le blob du PDF
@@ -93,7 +95,7 @@ export default function InvoicesPage() {
       document.body.removeChild(a);
     } catch (error) {
       console.error('Erreur lors du téléchargement du PDF:', error);
-      alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+      alert(t('dashboard_invoices_error_pdf'));
     } finally {
       // Fermer le popup
       setGeneratingPDF(null);
@@ -110,15 +112,15 @@ export default function InvoicesPage() {
 
   return (
     <div className="bg-white dark:bg-black">
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Mes factures
+              {t('dashboard_invoices_title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Consultez et téléchargez toutes vos factures
+              {t('dashboard_invoices_desc')}
             </p>
           </div>
 
@@ -127,10 +129,10 @@ export default function InvoicesPage() {
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-12 text-center">
               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Aucune facture
+                {t('dashboard_invoices_empty_title')}
               </p>
               <p className="text-gray-500 dark:text-gray-400">
-                Vous n'avez pas encore de factures
+                {t('dashboard_invoices_empty_desc')}
               </p>
             </div>
           ) : (
@@ -140,25 +142,25 @@ export default function InvoicesPage() {
                   <thead className="bg-gray-50/50 dark:bg-[#0F0F0F] border-b border-gray-200/50 dark:border-[#1A1A1A]">
                     <tr>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Numéro
+                        {t('dashboard_invoices_table_number')}
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Service
+                        {t('dashboard_invoices_table_service')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Date de paiement
+                        {t('dashboard_invoices_table_payment_date')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Méthode
+                        {t('dashboard_invoices_table_method')}
                       </th>
                       <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Montant
+                        {t('dashboard_invoices_table_amount')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Statut
+                        {t('dashboard_invoices_table_status')}
                       </th>
                       <th className="px-6 py-4 text-center text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wider">
-                        Actions
+                        {t('dashboard_invoices_table_actions')}
                       </th>
                     </tr>
                   </thead>
@@ -216,12 +218,12 @@ export default function InvoicesPage() {
                           {invoice.status === 1 ? (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-400">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
-                              Payé
+                              {t('dashboard_invoices_status_paid')}
                             </span>
                           ) : (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">
                               <XCircle className="w-3 h-3 mr-1" />
-                              Non payé
+                              {t('dashboard_invoices_status_unpaid')}
                             </span>
                           )}
                         </td>
@@ -230,7 +232,7 @@ export default function InvoicesPage() {
                             <button
                               onClick={(e) => handleDownloadPDF(invoice.id, e)}
                               className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#d23f26] dark:hover:text-[#d23f26] transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A]"
-                              title="Télécharger le PDF"
+                              title={t('dashboard_invoices_download_pdf')}
                             >
                               <Download className="w-4 h-4" />
                             </button>
@@ -240,7 +242,7 @@ export default function InvoicesPage() {
                                 router.push(`/invoices/${invoice.id}`);
                               }}
                               className="p-2 text-gray-600 dark:text-gray-400 hover:text-[#d23f26] dark:hover:text-[#d23f26] transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-[#1A1A1A]"
-                              title="Voir les détails"
+                              title={t('dashboard_invoices_view_details')}
                             >
                               <ArrowRight className="w-4 h-4" />
                             </button>
@@ -263,10 +265,10 @@ export default function InvoicesPage() {
             <div className="flex flex-col items-center text-center">
               <div className="w-16 h-16 border-4 border-[#d23f26] border-t-transparent rounded-full animate-spin mb-4" />
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                Génération en cours
+                {t('dashboard_invoices_generating')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Génération en cours de votre facture...
+                {t('dashboard_invoices_generating_desc')}
               </p>
             </div>
           </div>
@@ -275,6 +277,11 @@ export default function InvoicesPage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

@@ -4,8 +4,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function CTASection() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -31,10 +33,10 @@ export default function CTASection() {
         <div className={`transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="mx-auto max-w-2xl">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Prêt à sécuriser votre infrastructure ?
+              {t('cta_title')}
             </h2>
             <p className="mx-auto mt-6 max-w-xl text-lg text-gray-300">
-              Rejoignez des centaines d'entreprises qui nous font confiance pour protéger leurs données sensibles avec Yaplyx.
+              {t('cta_description')}
             </p>
 
             <div className="mt-10 flex items-center justify-center gap-x-6">
@@ -42,14 +44,14 @@ export default function CTASection() {
                 href="/offres"
                 className="group inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm hover:bg-slate-100 transition-all duration-300 hover:scale-105 hover:shadow-lg"
               >
-                Consulter nos offres
+                {t('cta_view_offers')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/contact"
                 className="text-sm font-semibold text-white hover:text-gray-300 transition-colors"
               >
-                Nous contacter <span aria-hidden="true">→</span>
+                {t('cta_contact')} <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>

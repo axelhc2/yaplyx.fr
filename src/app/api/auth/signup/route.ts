@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
+import { t } from '@/lib/i18n-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,14 +27,14 @@ export async function POST(request: NextRequest) {
     // Validation
     if (!email || !password || !firstName || !lastName) {
       return NextResponse.json(
-        { error: 'Les champs email, mot de passe, prénom et nom sont requis' },
+        { error: t(request, 'api_error_signup_required') },
         { status: 400 }
       );
     }
 
     if (password.length < 5) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 5 caractères' },
+        { error: t(request, 'api_error_signup_password_length') },
         { status: 400 }
       );
     }
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'Cet email est déjà utilisé' },
+        { error: t(request, 'api_error_signup_email_exists') },
         { status: 400 }
       );
     }
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
           email: user.email,
           name: user.name,
         },
-        message: 'Compte créé avec succès. Veuillez vous connecter.',
+        message: t(request, 'api_success_signup'),
       });
     }
   } catch (error: any) {
@@ -114,13 +115,13 @@ export async function POST(request: NextRequest) {
     // Gérer les erreurs de contrainte unique
     if (error.code === 'P2002') {
       return NextResponse.json(
-        { error: 'Cet email est déjà utilisé' },
+        { error: t(request, 'api_error_signup_email_exists') },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: error.message || 'Erreur lors de l\'inscription' },
+      { error: error.message || t(request, 'api_error_signup') },
       { status: 500 }
     );
   }

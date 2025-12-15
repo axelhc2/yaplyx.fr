@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
+import { t } from '@/lib/i18n-server';
 
 const TELEGRAM_BOT_TOKEN = '8578688168:AAEAtXxf72z2Ef2QqpXrQ6g4xVR70__Q5d4';
 const TELEGRAM_CHAT_ID = '5248234928';
@@ -23,7 +24,6 @@ async function sendTelegramMessage(message: string) {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
       console.error('Erreur lors de l\'envoi du message Telegram:', errorData);
-      // Ne pas throw, juste logger l'erreur
     }
   } catch (error) {
     // Ne pas bloquer l'exécution si Telegram échoue
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const session = await getAuthenticatedSession(request);
     if (!session) {
       return NextResponse.json(
-        { error: 'Non authentifié' },
+        { error: t(request, 'api_error_unauthorized') },
         { status: 401 }
       );
     }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     if (!serviceId || !domain || !serverId) {
       return NextResponse.json(
-        { error: 'Paramètres manquants' },
+        { error: t(request, 'api_error_missing_params') },
         { status: 400 }
       );
     }
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     if (!service) {
       return NextResponse.json(
-        { error: 'Service introuvable' },
+        { error: t(request, 'api_error_service_not_found') },
         { status: 404 }
       );
     }
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Utilisateur introuvable' },
+        { error: t(request, 'api_error_user_not_found') },
         { status: 404 }
       );
     }
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     if (!server) {
       return NextResponse.json(
-        { error: 'Serveur introuvable' },
+        { error: t(request, 'api_error_server_not_found') },
         { status: 404 }
       );
     }
@@ -167,7 +167,7 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json(
-        { error: 'Une erreur est survenue lors de l\'installation. L\'équipe technique a été notifiée.' },
+        { error: t(request, 'api_error_installation') },
         { status: 500 }
       );
     }
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
 
       // Ne pas renvoyer l'erreur détaillée au client
       return NextResponse.json(
-        { error: 'Une erreur est survenue lors de l\'installation. L\'équipe technique a été notifiée.' },
+        { error: t(request, 'api_error_installation') },
         { status: 500 }
       );
     }
@@ -268,7 +268,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { error: 'Une erreur est survenue lors de l\'installation. L\'équipe technique a été notifiée.' },
+      { error: t(request, 'api_error_installation') },
       { status: 500 }
     );
   }

@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import ConditionalNavbar from '@/components/ConditionalNavbar';
+import { I18nProvider } from '@/lib/i18n';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -31,6 +32,7 @@ export default function RootLayout({
   return (
     <html lang="fr" suppressHydrationWarning>
       <body className={`${inter.className} bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased relative overflow-x-hidden`}>
+        <I18nProvider>
         {/* Particules globales subtiles */}
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
           {[
@@ -98,8 +100,9 @@ export default function RootLayout({
           ))}
         </div>
 
-        <ConditionalNavbar />
-        <main className="relative z-10">{children}</main>
+          <ConditionalNavbar />
+          <main className="relative z-10">{children}</main>
+        </I18nProvider>
       </body>
     </html>
   );

@@ -4,8 +4,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Shield, Mail, Phone, MapPin, Twitter, Github, Linkedin, ArrowRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Footer() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -13,16 +15,16 @@ export default function Footer() {
   }, []);
 
   const navigation = [
-    { name: 'Accueil', href: '/' },
-    { name: 'Offres', href: '/offres' },
-    { name: 'Explications', href: '/explications' },
-    { name: 'Contact', href: '/contact' },
+    { name: t('navbar_home'), href: '/' },
+    { name: t('navbar_offers'), href: '/offres' },
+    { name: t('navbar_explanations'), href: '/explications' },
+    { name: t('navbar_contact'), href: '/contact' },
   ];
 
   const legal = [
-    { name: 'Confidentialité', href: '/privacy' },
-    { name: 'Conditions', href: '/terms' },
-    { name: 'RGPD', href: '/rgpd' },
+    { name: t('footer_privacy'), href: '/privacy' },
+    { name: t('footer_terms'), href: '/terms' },
+    { name: t('footer_rgpd'), href: '/rgpd' },
   ];
 
   const social = [
@@ -66,8 +68,7 @@ export default function Footer() {
                 <span className="text-xl font-bold text-slate-900 dark:text-white">Yaplyx</span>
               </div>
               <p className="text-sm text-slate-600 dark:text-gray-400 max-w-md leading-relaxed mb-6">
-                La solution firewall moderne qui sécurise votre infrastructure cloud avec une simplicité déconcertante.
-                Déploiement automatisé, monitoring 24/7, conformité garantie.
+                {t('footer_description')}
               </p>
 
               {/* Contact rapide */}
@@ -90,7 +91,7 @@ export default function Footer() {
             {/* Navigation */}
             <div className={`transition-all duration-1000 delay-200 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wide">
-                Navigation
+                {t('footer_navigation')}
               </h3>
               <ul className="space-y-3">
                 {navigation.map((item) => (
@@ -109,7 +110,7 @@ export default function Footer() {
             {/* Légal et réseaux sociaux */}
             <div className={`transition-all duration-1000 delay-400 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white mb-4 uppercase tracking-wide">
-                Légal
+                {t('footer_legal')}
               </h3>
               <ul className="space-y-3 mb-6">
                 {legal.map((item) => (
@@ -151,7 +152,7 @@ export default function Footer() {
           {/* Copyright */}
           <div className={`text-center transition-all duration-1000 delay-600 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
             <div className="text-sm text-slate-600 dark:text-gray-400">
-              © 2024 Yaplyx. Tous droits réservés.
+              {t('footer_copyright')}
             </div>
           </div>
         </div>

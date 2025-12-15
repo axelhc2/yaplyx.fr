@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Server, CheckCircle2, XCircle, Globe, Loader2 } from 'lucide-react';
 import { fetchWithCSRF } from '@/lib/csrf-client';
+import { useTranslation } from '@/lib/i18n';
 
 interface ServerInfo {
   id: number;
@@ -12,6 +13,7 @@ interface ServerInfo {
 }
 
 export default function CreateClusterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useParams();
   const [loading, setLoading] = useState(true);
@@ -57,11 +59,11 @@ export default function CreateClusterPage() {
             setDomainCreated(true);
             setDnsError(null);
           } else {
-            setDnsError(data.error || 'Erreur lors de la création du domaine');
+            setDnsError(data.error || t('cluster_create_error_domain'));
             setDomainCreated(false);
           }
         } catch (error: any) {
-          setDnsError('Erreur lors de la création du domaine');
+          setDnsError(t('cluster_create_error_domain'));
           setDomainCreated(false);
         } finally {
           setCreatingDomain(false);
@@ -85,7 +87,7 @@ export default function CreateClusterPage() {
 
     // Pour domaine personnalisé, vérifier que DNS est validé
     if (domainType === 'custom' && !dnsVerified) {
-      setInstallationError('Veuillez d\'abord vérifier l\'enregistrement DNS');
+      setInstallationError(t('cluster_create_verify_first'));
       return;
     }
 
@@ -117,11 +119,11 @@ export default function CreateClusterPage() {
         }, 2000);
       } else {
         setInstallationSuccess(false);
-        setInstallationError(data.error || 'Une erreur est survenue lors de l\'installation');
+        setInstallationError(data.error || t('cluster_create_error_install'));
       }
     } catch (error: any) {
       setInstallationSuccess(false);
-      setInstallationError('Une erreur est survenue lors de l\'installation');
+      setInstallationError(t('cluster_create_error_install'));
     } finally {
       setInstalling(false);
     }
@@ -181,16 +183,16 @@ export default function CreateClusterPage() {
         setDnsVerified(false);
         // Afficher un message plus clair selon le type d'erreur
         if (data.errorCode === 'ENOTFOUND' || data.errorCode === 'ENODATA') {
-          setDnsError(data.error || `Le domaine "${customDomain}" n'existe pas ou n'a pas d'enregistrement DNS. Veuillez créer l'enregistrement DNS A pointant vers ${serverInfo.ip}`);
+          setDnsError(data.error || t('cluster_create_dns_not_found').replace('{domain}', customDomain).replace('{ip}', serverInfo.ip));
         } else if (data.resolvedIPs && data.resolvedIPs.length > 0) {
-          setDnsError(`Le domaine pointe vers ${data.resolvedIPs.join(', ')}, mais l'IP attendue est ${serverInfo.ip}`);
+          setDnsError(t('cluster_create_dns_wrong_ip').replace('{resolvedIPs}', data.resolvedIPs.join(', ')).replace('{expectedIP}', serverInfo.ip));
         } else {
-          setDnsError(data.error || 'L\'enregistrement DNS ne pointe pas vers la bonne IP');
+          setDnsError(data.error || t('cluster_create_dns_invalid'));
         }
       }
     } catch (error: any) {
       setDnsVerified(false);
-      setDnsError('Erreur lors de la vérification DNS');
+      setDnsError(t('cluster_create_error_dns'));
     } finally {
       setVerifying(false);
     }
@@ -207,17 +209,17 @@ export default function CreateClusterPage() {
   if (!serverInfo) {
     return (
       <div className="bg-white dark:bg-black">
-        <div className="p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-12 text-center">
+            <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 sm:p-8 lg:p-12 text-center">
               <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Aucun serveur disponible
+                {t('cluster_create_no_server')}
               </p>
               <button
                 onClick={() => router.back()}
                 className="mt-4 px-6 py-3 bg-gray-100 dark:bg-[#1A1A1A] text-gray-900 dark:text-white rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-[#252525] transition-all"
               >
-                Retour
+                {t('cluster_create_back')}
               </button>
             </div>
           </div>
@@ -228,22 +230,22 @@ export default function CreateClusterPage() {
 
   return (
     <div className="bg-white dark:bg-black">
-      <div className="p-8">
+      <div className="p-4 sm:p-6 lg:p-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Installer votre cluster
+              {t('cluster_create_title')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Configurez votre cluster pour le service #{params?.id}
+              {t('cluster_create_desc').replace('{id}', String(params?.id || ''))}
             </p>
           </div>
 
           {/* Domain Type Selection */}
           <div className="mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Choisissez votre type de domaine
+              {t('cluster_create_choose_domain')}
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
@@ -270,10 +272,10 @@ export default function CreateClusterPage() {
                     <Globe className="w-6 h-6" />
                   </div>
                   <h3 className={`text-lg font-bold mb-2 ${domainType === 'custom' ? 'text-[#d23f26]' : 'text-gray-900 dark:text-white'}`}>
-                    Mon propre domaine
+                    {t('cluster_create_custom_domain_title')}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Utilisez votre domaine personnalisé (ex: cluster.mondomaine.com)
+                    {t('cluster_create_custom_domain_desc')}
                   </p>
                 </div>
               </button>
@@ -302,10 +304,10 @@ export default function CreateClusterPage() {
                     <Server className="w-6 h-6" />
                   </div>
                   <h3 className={`text-lg font-bold mb-2 ${domainType === 'yaplyx' ? 'text-[#d23f26]' : 'text-gray-900 dark:text-white'}`}>
-                    Domaine Yaplyx
+                    {t('cluster_create_yaplyx_domain_title')}
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Obtenez un domaine .yaplyx.online automatiquement
+                    {t('cluster_create_yaplyx_domain_desc')}
                   </p>
                 </div>
               </button>
@@ -316,12 +318,12 @@ export default function CreateClusterPage() {
           {domainType === 'custom' && (
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Configuration DNS
+                {t('cluster_create_dns_config')}
               </h2>
               
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Votre domaine
+                  {t('cluster_create_your_domain')}
                 </label>
                 <input
                   type="text"
@@ -331,7 +333,7 @@ export default function CreateClusterPage() {
                     setDnsVerified(null);
                     setDnsError(null);
                   }}
-                  placeholder="exemple.com"
+                  placeholder={t('cluster_create_domain_placeholder')}
                   className="w-full px-4 py-2 bg-white dark:bg-[#0F0F0F] border border-gray-200 dark:border-[#1A1A1A] rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#d23f26]"
                 />
               </div>
@@ -339,19 +341,19 @@ export default function CreateClusterPage() {
               {customDomain && (
                 <div className="bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/20 rounded-xl p-4 mb-4">
                   <p className="text-sm font-medium text-blue-900 dark:text-blue-400 mb-2">
-                    Enregistrement DNS à créer :
+                    {t('cluster_create_dns_record')}
                   </p>
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-blue-800 dark:text-blue-300">Type:</span>
+                      <span className="font-mono text-blue-800 dark:text-blue-300">{t('cluster_create_dns_type')}</span>
                       <span className="text-gray-700 dark:text-gray-300">A</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-blue-800 dark:text-blue-300">Nom:</span>
+                      <span className="font-mono text-blue-800 dark:text-blue-300">{t('cluster_create_dns_name')}</span>
                       <span className="text-gray-700 dark:text-gray-300">{customDomain}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-blue-800 dark:text-blue-300">Valeur:</span>
+                      <span className="font-mono text-blue-800 dark:text-blue-300">{t('cluster_create_dns_value')}</span>
                       <span className="text-gray-700 dark:text-gray-300 font-mono">{serverInfo.ip}</span>
                     </div>
                   </div>
@@ -366,10 +368,10 @@ export default function CreateClusterPage() {
                 {verifying ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Vérification en cours...
+                    {t('cluster_create_verifying')}
                   </>
                 ) : (
-                  'Vérifier l\'enregistrement'
+                  t('cluster_create_verify')
                 )}
               </button>
 
@@ -382,10 +384,10 @@ export default function CreateClusterPage() {
                   {installing ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Installation en cours...
+                      {t('cluster_create_installing')}
                     </>
                   ) : (
-                    'Installer le cluster'
+                    t('cluster_create_install')
                   )}
                 </button>
               )}
@@ -394,7 +396,7 @@ export default function CreateClusterPage() {
                 <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <span className="text-sm text-green-800 dark:text-green-400">
-                    L'enregistrement DNS est correct !
+                    {t('cluster_create_dns_valid')}
                   </span>
                 </div>
               )}
@@ -403,7 +405,7 @@ export default function CreateClusterPage() {
                 <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/20 rounded-xl flex items-center gap-2 mb-4">
                   <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   <span className="text-sm text-red-800 dark:text-red-400">
-                    {dnsError || 'L\'enregistrement DNS ne pointe pas vers la bonne IP'}
+                    {dnsError || t('cluster_create_dns_invalid')}
                   </span>
                 </div>
               )}
@@ -421,7 +423,7 @@ export default function CreateClusterPage() {
                 <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-900/20 rounded-xl flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                   <span className="text-sm text-green-800 dark:text-green-400">
-                    Installation réussie ! Redirection en cours...
+                    {t('cluster_create_success')}
                   </span>
                 </div>
               )}
@@ -432,7 +434,7 @@ export default function CreateClusterPage() {
           {domainType === 'yaplyx' && (
             <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                Votre domaine Yaplyx
+                {t('cluster_create_yaplyx_title')}
               </h2>
               
               {yaplyxDomain && (
@@ -440,14 +442,14 @@ export default function CreateClusterPage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-                        Votre domaine généré :
+                        {t('cluster_create_yaplyx_generated')}
                       </p>
                       <p className="text-lg font-bold text-[#d23f26] font-mono">
                         {yaplyxDomain}
                       </p>
                       {serverInfo && (
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          IP : {serverInfo.ip}
+                          {t('cluster_create_ip')} {serverInfo.ip}
                         </p>
                       )}
                     </div>
@@ -469,7 +471,7 @@ export default function CreateClusterPage() {
                   <div className="flex items-center gap-2">
                     <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
                     <p className="text-sm text-blue-800 dark:text-blue-400">
-                      Création du domaine en cours...
+                      {t('cluster_create_creating')}
                     </p>
                   </div>
                 </div>
@@ -481,7 +483,7 @@ export default function CreateClusterPage() {
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                       <p className="text-sm text-green-800 dark:text-green-400">
-                        Le domaine a été créé avec succès !
+                        {t('cluster_create_domain_success')}
                       </p>
                     </div>
                   </div>
@@ -494,10 +496,10 @@ export default function CreateClusterPage() {
                     {installing ? (
                       <>
                         <Loader2 className="w-5 h-5 animate-spin" />
-                        Installation en cours...
+                        {t('cluster_create_installing')}
                       </>
                     ) : (
-                      'Installer le cluster'
+                      t('cluster_create_install')
                     )}
                   </button>
                 </>
@@ -519,7 +521,7 @@ export default function CreateClusterPage() {
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                     <p className="text-sm text-green-800 dark:text-green-400">
-                      Installation réussie ! Redirection en cours...
+                      {t('cluster_create_success')}
                     </p>
                   </div>
                 </div>
@@ -542,6 +544,11 @@ export default function CreateClusterPage() {
     </div>
   );
 }
+
+
+
+
+
 
 
 

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
+import { t } from '@/lib/i18n-server';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getAuthenticatedSession(request);
     if (!session) {
       return NextResponse.json(
-        { error: 'Non authentifié' },
+        { error: t(request, 'api_error_unauthorized') },
         { status: 401 }
       );
     }

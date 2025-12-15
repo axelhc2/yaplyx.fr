@@ -3,8 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Clock, Shield, Zap, Users, Award, Star } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function WhyChooseUs() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
   const [visibleItems, setVisibleItems] = useState<number[]>([]);
 
@@ -21,53 +23,53 @@ export default function WhyChooseUs() {
   const advantages = [
     {
       icon: Clock,
-      title: "Déploiement ultra-rapide",
-      description: "De 0 à opérationnel en moins de 30 minutes. Pas de configuration complexe, tout est automatisé.",
-      metric: "< 30 min",
+      title: t('why_advantage_1_title'),
+      description: t('why_advantage_1_desc'),
+      metric: t('why_advantage_1_metric'),
       color: "text-blue-600 dark:text-blue-500"
     },
     {
       icon: Shield,
-      title: "Sécurité de niveau entreprise",
-      description: "Chiffrement bcrypt, authentification 2FA, et conformité RGPD. Vos données sont en sécurité.",
-      metric: "99.9%",
+      title: t('why_advantage_2_title'),
+      description: t('why_advantage_2_desc'),
+      metric: t('why_advantage_2_metric'),
       color: "text-green-600 dark:text-green-500"
     },
     {
       icon: Zap,
-      title: "Performance optimale",
-      description: "Architecture scalable qui s'adapte à votre croissance. Temps de réponse inférieur à 3 secondes.",
-      metric: "< 3 sec",
+      title: t('why_advantage_3_title'),
+      description: t('why_advantage_3_desc'),
+      metric: t('why_advantage_3_metric'),
       color: "text-purple-600 dark:text-purple-500"
     },
     {
       icon: Users,
-      title: "Support expert 24/7",
-      description: "Équipe technique disponible en permanence. Résolution moyenne des tickets en moins de 2h.",
-      metric: "24/7",
+      title: t('why_advantage_4_title'),
+      description: t('why_advantage_4_desc'),
+      metric: t('why_advantage_4_metric'),
       color: "text-orange-600 dark:text-orange-500"
     },
     {
       icon: Award,
-      title: "Certification reconnue",
-      description: "Certifié ISO 27001 et conforme aux standards de sécurité les plus exigeants du marché.",
-      metric: "ISO 27001",
+      title: t('why_advantage_5_title'),
+      description: t('why_advantage_5_desc'),
+      metric: t('why_advantage_5_metric'),
       color: "text-red-600 dark:text-red-500"
     },
     {
       icon: Star,
-      title: "Interface intuitive",
-      description: "Dashboard moderne et facile à prendre en main. Formation non requise pour vos équipes.",
-      metric: "5/5 UX",
+      title: t('why_advantage_6_title'),
+      description: t('why_advantage_6_desc'),
+      metric: t('why_advantage_6_metric'),
       color: "text-indigo-600 dark:text-indigo-500"
     }
   ];
 
   const stats = [
-    { value: "300+", label: "Équipes satisfaites" },
-    { value: "99.99%", label: "Uptime garanti" },
-    { value: "8 400+", label: "Serveurs sécurisés" },
-    { value: "< 3s", label: "Déploiement moyen" }
+    { value: "300+", label: t('why_stats_teams') },
+    { value: "99.99%", label: t('why_stats_uptime') },
+    { value: "8 400+", label: t('why_stats_servers') },
+    { value: "< 3s", label: t('why_stats_deploy') }
   ];
 
   return (
@@ -128,8 +130,8 @@ export default function WhyChooseUs() {
         <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4 relative z-10">
-              Pourquoi nous <span className="relative">
-                <span className="text-[#d23f26]">choisir</span>
+              {t('why_title_1')} <span className="relative">
+                <span className="text-[#d23f26]">{t('why_title_2')}</span>
                 {/* Soulignement en forme de vague */}
                 <svg
                   className="absolute -bottom-2 left-0 w-full h-5 text-[#d23f26] animate-pulse"
@@ -154,7 +156,7 @@ export default function WhyChooseUs() {
 
           <div className="relative">
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              La solution firewall moderne qui combine simplicité d'usage et sécurité de niveau entreprise
+              {t('why_description')}
             </p>
 
             {/* Ligne décorative avec motif */}
@@ -220,10 +222,10 @@ export default function WhyChooseUs() {
           <div className="bg-white dark:bg-[#050505] border border-gray-200/50 dark:border-gray-800/50 rounded-2xl p-8 lg:p-12 shadow-lg">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                Chiffres qui parlent
+                {t('why_stats_title')}
               </h3>
               <p className="text-gray-600 dark:text-gray-400">
-                Notre engagement envers la qualité et la sécurité
+                {t('why_stats_desc')}
               </p>
             </div>
 

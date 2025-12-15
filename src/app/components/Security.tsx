@@ -3,8 +3,10 @@
 
 import { useEffect, useState } from 'react';
 import { Shield, Lock, Eye, Key, Fingerprint, Activity, AlertTriangle } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Security() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
   const [visibleCards, setVisibleCards] = useState<number[]>([]);
 
@@ -21,38 +23,38 @@ export default function Security() {
   const features = [
     {
       icon: Shield,
-      title: "Chiffrement bcrypt",
-      description: "Protection avancée de vos données sensibles",
+      title: t('security_feature_1_title'),
+      description: t('security_feature_1_desc'),
       color: "text-red-600 dark:text-red-500"
     },
     {
       icon: Lock,
-      title: "2FA obligatoire",
-      description: "Double authentification activée par défaut",
+      title: t('security_feature_2_title'),
+      description: t('security_feature_2_desc'),
       color: "text-orange-600 dark:text-orange-500"
     },
     {
       icon: Eye,
-      title: "Surveillance 24/7",
-      description: "Monitoring continu et détection d'anomalies",
+      title: t('security_feature_3_title'),
+      description: t('security_feature_3_desc'),
       color: "text-blue-600 dark:text-blue-500"
     },
     {
       icon: Key,
-      title: "Gestion des clés",
-      description: "Rotation automatique et sécurisée des clés",
+      title: t('security_feature_4_title'),
+      description: t('security_feature_4_desc'),
       color: "text-green-600 dark:text-green-500"
     },
     {
       icon: Fingerprint,
-      title: "Conformité RGPD",
-      description: "Respect total de la réglementation européenne",
+      title: t('security_feature_5_title'),
+      description: t('security_feature_5_desc'),
       color: "text-purple-600 dark:text-purple-500"
     },
     {
       icon: Activity,
-      title: "Audit continu",
-      description: "Vérifications régulières et rapports détaillés",
+      title: t('security_feature_6_title'),
+      description: t('security_feature_6_desc'),
       color: "text-indigo-600 dark:text-indigo-500"
     }
   ];
@@ -141,8 +143,8 @@ export default function Security() {
         <div className={`text-center mb-16 transition-all duration-1000 ${loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="relative">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 dark:text-white mb-4 relative z-10">
-              Sécurité <span className="relative">
-                <span className="text-[#d23f26]">maximale</span>
+              {t('security_title')} <span className="relative">
+                <span className="text-[#d23f26]">{t('security_title_highlight')}</span>
                 {/* Soulignement en dents de scie */}
                 <svg
                   className="absolute -bottom-1 left-0 w-full h-4 text-[#d23f26] animate-pulse"
@@ -167,7 +169,7 @@ export default function Security() {
 
           <div className="relative">
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Vos données sont protégées par les meilleures technologies de sécurité au monde
+              {t('security_description')}
             </p>
 
             {/* Ligne de protection stylisée */}
@@ -187,15 +189,15 @@ export default function Security() {
                   <Shield className="w-5 h-5 text-green-600 dark:text-green-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Niveau de sécurité</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Évaluation en temps réel</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{t('security_level_title')}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('security_level_desc')}</p>
                 </div>
               </div>
 
               {/* Métriques */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Chiffrement</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{t('security_encryption')}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div className="w-full h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full"></div>
@@ -205,7 +207,7 @@ export default function Security() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Authentification</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{t('security_authentication')}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div className="w-full h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"></div>
@@ -215,7 +217,7 @@ export default function Security() {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">Conformité</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">{t('security_compliance')}</span>
                   <div className="flex items-center gap-2">
                     <div className="w-20 h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                       <div className="w-full h-full bg-gradient-to-r from-purple-500 to-purple-400 rounded-full"></div>
@@ -229,7 +231,7 @@ export default function Security() {
               <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-gray-800/50">
                 <div className="flex items-center justify-center gap-2">
                   <div className="px-3 py-1 bg-[#d23f26]/10 border border-[#d23f26]/20 rounded-full">
-                    <span className="text-xs font-semibold text-[#d23f26]">Certifié ISO 27001</span>
+                    <span className="text-xs font-semibold text-[#d23f26]">{t('security_certified')}</span>
                   </div>
                 </div>
               </div>
@@ -286,12 +288,12 @@ export default function Security() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-[#d23f26]" />
               <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                Zéro compromission depuis 2020
+                {t('security_zero_breach')}
               </span>
             </div>
             <div className="w-px h-6 bg-gray-300 dark:bg-gray-700" />
             <div className="text-sm text-gray-600 dark:text-gray-400">
-              99.999% uptime
+              {t('security_uptime')}
             </div>
           </div>
         </div>

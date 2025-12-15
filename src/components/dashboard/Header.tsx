@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DropdownMenu,
@@ -10,16 +10,37 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { User, Mail, Lock, Settings, LogOut, ChevronDown, Sun, Moon, Monitor } from 'lucide-react';
+import { User, Mail, Lock, Settings, LogOut, ChevronDown, Sun, Moon, Monitor, Globe, Check, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getGravatarUrl } from '@/lib/gravatar';
+import { useTranslation } from '@/lib/i18n';
+import { useSidebar } from '@/contexts/SidebarContext';
 
 export default function Header() {
   const router = useRouter();
+  const { language, setLanguage, t } = useTranslation();
+  const { toggle } = useSidebar();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState<'light' | 'dark' | 'system'>('system');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [langOpen, setLangOpen] = useState(false);
+  const langDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(e.target as Node)) {
+        setLangOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const languages = [
+    { code: 'FR' as const, name: t('navbar_lang_fr'), flag: '🇫🇷' },
+    { code: 'EN' as const, name: t('navbar_lang_en'), flag: '🇬🇧' },
+  ];
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -91,31 +112,69 @@ export default function Header() {
 
   const fullName = user?.firstName && user?.lastName 
     ? `${user.firstName} ${user.lastName}`
-    : user?.name || 'Utilisateur';
+    : user?.name || t('dashboard_header_user');
 
   return (
     <header className="sticky top-0 z-40 bg-white/70 dark:bg-[#0A0A0A]/70 backdrop-blur-2xl border-b border-gray-200/50 dark:border-[#1A1A1A]">
-      <div className="px-8 py-3">
-        <div className="flex items-center justify-end gap-4">
-          {/* Switch Dark Mode */}
-          <div className="flex bg-gray-100 dark:bg-gray-900 rounded-full p-0.5">
-            {[{ icon: Sun, mode: 'light' }, { icon: Moon, mode: 'dark' }, { icon: Monitor, mode: 'system' }].map(({ icon: Icon, mode }) => (
+      <div className="px-4 sm:px-6 lg:px-8 py-3">
+        <div className="flex items-center justify-between lg:justify-end gap-4">
+          {/* Bouton hamburger pour mobile */}
+          <button
+            onClick={toggle}
+            className="lg:hidden p-2 rounded-lg hover:bg-gray-100/50 dark:hover:bg-[#1A1A1A] transition-colors"
+            aria-label="Ouvrir le menu"
+          >
+            <Menu className="w-6 h-6 text-gray-600 dark:text-gray-400" />
+          </button>
+          
+          <div className="flex items-center gap-4 ml-auto">
+            {/* Language Selector */}
+            <div className="relative" ref={langDropdownRef}>
               <button
-                key={mode}
-                onClick={() => setDarkMode(mode as any)}
-                className={cn(
-                  'p-1.5 rounded-full transition',
-                  darkMode === mode ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                )}
-                title={mode === 'light' ? 'Clair' : mode === 'dark' ? 'Sombre' : 'Système'}
+                onClick={() => setLangOpen(!langOpen)}
+                className="flex items-center gap-1.5 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition font-medium rounded-lg hover:bg-gray-100/50 dark:hover:bg-[#1A1A1A]"
               >
-                <Icon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-semibold">{language}</span>
+                <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
-            ))}
-          </div>
 
-          {/* Dropdown Utilisateur */}
-          <DropdownMenu>
+              {langOpen && (
+                <div className="absolute right-0 mt-1.5 w-44 bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200/80 dark:border-gray-800 z-[999999] overflow-hidden">
+                  {languages.map((item) => (
+                    <button
+                      key={item.code}
+                      onClick={() => { setLanguage(item.code); setLangOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+                    >
+                      <span className="text-lg">{item.flag}</span>
+                      <span className="flex-1 text-left">{item.name}</span>
+                      {language === item.code && <Check className="w-4 h-4 text-[#d23f26]" />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Switch Dark Mode */}
+            <div className="flex bg-gray-100 dark:bg-gray-900 rounded-full p-0.5">
+              {[{ icon: Sun, mode: 'light' }, { icon: Moon, mode: 'dark' }, { icon: Monitor, mode: 'system' }].map(({ icon: Icon, mode }) => (
+                <button
+                  key={mode}
+                  onClick={() => setDarkMode(mode as any)}
+                  className={cn(
+                    'p-1.5 rounded-full transition',
+                    darkMode === mode ? 'bg-white dark:bg-gray-800 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-800'
+                  )}
+                  title={mode === 'light' ? t('dashboard_header_light') : mode === 'dark' ? t('dashboard_header_dark') : t('dashboard_header_system')}
+                >
+                  <Icon className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                </button>
+              ))}
+            </div>
+
+            {/* Dropdown Utilisateur */}
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-100/50 dark:hover:bg-[#1A1A1A] transition-colors">
                 <div className="relative">
@@ -173,7 +232,7 @@ export default function Header() {
                 onClick={() => router.push('/dashboard/profile')}
               >
                 <User className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Mes informations</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t('dashboard_header_my_info')}</span>
               </DropdownMenuItem>
 
               {/* Mes courriels reçus */}
@@ -182,7 +241,7 @@ export default function Header() {
                 onClick={() => router.push('/dashboard/emails')}
               >
                 <Mail className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Mes courriels reçus</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t('dashboard_header_my_emails')}</span>
               </DropdownMenuItem>
 
               {/* Modifier mot de passe */}
@@ -191,7 +250,7 @@ export default function Header() {
                 onClick={() => router.push('/dashboard/password')}
               >
                 <Lock className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Modifier mot de passe</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t('dashboard_header_change_password')}</span>
               </DropdownMenuItem>
 
               {/* Paramètres de sécurité */}
@@ -200,7 +259,7 @@ export default function Header() {
                 onClick={() => router.push('/dashboard/security')}
               >
                 <Settings className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
-                <span className="text-sm text-gray-700 dark:text-gray-300">Paramètres de sécurité</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{t('dashboard_header_security')}</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="bg-gray-200/50 dark:bg-[#1A1A1A]" />
@@ -211,10 +270,11 @@ export default function Header() {
                 onClick={handleLogout}
               >
                 <LogOut className="w-4 h-4 mr-3" />
-                <span className="text-sm font-medium">Déconnexion</span>
+                <span className="text-sm font-medium">{t('dashboard_header_logout')}</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         </div>
       </div>
     </header>

@@ -12,34 +12,46 @@ const ALLOWED_IPS = [
 ];
 
 /**
- * Récupère l'IP réelle du client
+ * Vérifie si une IP est une IPv4
+ */
+function isIPv4(ip: string): boolean {
+  // Regex pour IPv4 (ex: 192.168.1.1)
+  const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+  return ipv4Regex.test(ip);
+}
+
+/**
+ * Récupère l'IP réelle du client (IPv4 uniquement)
  */
 function getClientIP(request: NextRequest): string {
   // Vérifier les headers proxy courants
   const forwarded = request.headers.get('x-forwarded-for');
   if (forwarded) {
     const ips = forwarded.split(',').map(ip => ip.trim());
-    return ips[0] || 'unknown';
+    // Chercher la première IPv4
+    for (const ip of ips) {
+      // Nettoyer l'IP (enlever ::ffff: si présent)
+      const cleanIP = ip.replace(/^::ffff:/, '');
+      if (isIPv4(cleanIP)) {
+        return cleanIP;
+      }
+    }
   }
   
   const realIP = request.headers.get('x-real-ip');
   if (realIP) {
-    return realIP;
+    const cleanIP = realIP.replace(/^::ffff:/, '');
+    if (isIPv4(cleanIP)) {
+      return cleanIP;
+    }
   }
   
-  // Fallback sur l'IP de la requête
-  const forwardedFor = request.headers.get('x-forwarded-for');
-  const realIp = request.headers.get('x-real-ip');
   const cfConnectingIp = request.headers.get('cf-connecting-ip');
-  
-  if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim();
-  }
-  if (realIp) {
-    return realIp;
-  }
   if (cfConnectingIp) {
-    return cfConnectingIp;
+    const cleanIP = cfConnectingIp.replace(/^::ffff:/, '');
+    if (isIPv4(cleanIP)) {
+      return cleanIP;
+    }
   }
   
   return 'unknown';
@@ -56,7 +68,7 @@ export async function GET(
   { params }: { params: Promise<{ name_cluster: string }> }
 ) {
   try {
-    // Vérifier l'IP du client
+    // Vérifier l'IP du client (IPv4 uniquement)
     const clientIP = getClientIP(request);
     
     if (!ALLOWED_IPS.includes(clientIP)) {
@@ -96,6 +108,11 @@ export async function GET(
             rules: true,
             logs: true,
             stats: true,
+            offer: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -123,6 +140,9 @@ export async function GET(
         logs: cluster.service.logs,
         stats: cluster.service.stats,
       },
+      offre: {
+        nom: cluster.service.offer?.name ?? null,
+      },
     };
 
     return NextResponse.json(response);
@@ -134,6 +154,10 @@ export async function GET(
     );
   }
 }
+
+
+
+
 
 
 

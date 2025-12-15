@@ -8,6 +8,7 @@ import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Shield, User, MapPin, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 // Liste des indicatifs téléphoniques internationaux
 const countryCodes = [
@@ -52,6 +53,7 @@ const countries = [
 ];
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -91,13 +93,13 @@ export default function RegisterPage() {
 
     // Validation
     if (formData.password.length < 5) {
-      setError('Le mot de passe doit contenir au moins 5 caractères');
+      setError(t('auth_register_password_length'));
       setLoading(false);
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      setError(t('auth_register_password_match'));
       setLoading(false);
       return;
     }
@@ -130,7 +132,7 @@ export default function RegisterPage() {
 
       // Vérifier si la réponse est vide ou 404
       if (response.status === 404 || !response.ok) {
-        setError('Une erreur est survenue lors de l\'inscription');
+        setError(t('auth_register_error'));
         setLoading(false);
         return;
       }
@@ -138,7 +140,7 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Une erreur est survenue lors de l\'inscription');
+        setError(data.error || t('auth_register_error'));
         setLoading(false);
         return;
       }
@@ -204,10 +206,10 @@ export default function RegisterPage() {
               <Shield className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 bg-clip-text">
-              Créer votre compte
+              {t('auth_register_title')}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              Rejoignez Yaplyx et commencez à sécuriser votre infrastructure dès aujourd'hui
+              {t('auth_register_subtitle')}
             </p>
           </div>
 
@@ -231,14 +233,14 @@ export default function RegisterPage() {
                     <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Informations personnelles
+                    {t('auth_register_personal')}
                   </h2>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Prénom *
+                      {t('auth_register_firstname')}
                     </Label>
                     <Input
                       id="firstName"
@@ -253,7 +255,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Nom *
+                      {t('auth_register_lastname')}
                     </Label>
                     <Input
                       id="lastName"
@@ -269,7 +271,7 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Adresse courriel *
+                    {t('auth_register_email')}
                   </Label>
                   <Input
                     id="email"
@@ -285,7 +287,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="phoneCountry" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Indicatif pays *
+                      {t('auth_register_phone_code')}
                     </Label>
                     <Select
                       id="phoneCountry"
@@ -305,7 +307,7 @@ export default function RegisterPage() {
 
                   <div className="md:col-span-2 space-y-2">
                     <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Téléphone *
+                      {t('auth_register_phone')}
                     </Label>
                     <Input
                       id="phoneNumber"
@@ -328,14 +330,14 @@ export default function RegisterPage() {
                     <MapPin className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Adresse de facturation
+                    {t('auth_register_billing')}
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="companyName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Nom de l'entreprise <span className="text-gray-400">(Optionnel)</span>
+                      {t('auth_register_company')} <span className="text-gray-400">{t('auth_register_company_optional')}</span>
                     </Label>
                     <Input
                       id="companyName"
@@ -349,7 +351,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="vatNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Numéro TVA <span className="text-gray-400">(Optionnel)</span>
+                      {t('auth_register_vat')} <span className="text-gray-400">{t('auth_register_company_optional')}</span>
                     </Label>
                     <Input
                       id="vatNumber"
@@ -364,7 +366,7 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="billingAddress" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Adresse *
+                    {t('auth_register_address')}
                   </Label>
                   <Input
                     id="billingAddress"
@@ -379,7 +381,7 @@ export default function RegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="billingAddress2" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Adresse 2 <span className="text-gray-400">(Optionnel)</span>
+                    {t('auth_register_address2')} <span className="text-gray-400">{t('auth_register_company_optional')}</span>
                   </Label>
                   <Input
                     id="billingAddress2"
@@ -394,7 +396,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="billingCity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Ville *
+                      {t('auth_register_city')}
                     </Label>
                     <Input
                       id="billingCity"
@@ -409,7 +411,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="billingCountry" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Pays *
+                      {t('auth_register_country')}
                     </Label>
                     <Select
                       id="billingCountry"
@@ -431,7 +433,7 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label htmlFor="billingProvince" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Province
+                      {t('auth_register_province')}
                     </Label>
                     <Input
                       id="billingProvince"
@@ -446,7 +448,7 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="billingPostalCode" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Code postal *
+                      {t('auth_register_postal')}
                     </Label>
                     <Input
                       id="billingPostalCode"
@@ -468,13 +470,13 @@ export default function RegisterPage() {
                     <Lock className="w-5 h-5 text-green-600 dark:text-green-400" />
                   </div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                    Sécurité du compte
+                    {t('auth_register_security')}
                   </h2>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Mot de passe *
+                    {t('auth_register_password')}
                   </Label>
                   <Input
                     id="password"
@@ -488,13 +490,13 @@ export default function RegisterPage() {
                   />
                   <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    Au moins 5 caractères
+                    {t('auth_register_password_min')}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Confirmer le mot de passe *
+                    {t('auth_register_confirm')}
                   </Label>
                   <Input
                     id="confirmPassword"
@@ -519,11 +521,11 @@ export default function RegisterPage() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Inscription en cours...
+                      {t('auth_register_loading')}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
-                      Créer mon compte
+                      {t('auth_register_submit')}
                       <ArrowRight className="w-5 h-5" />
                     </span>
                   )}
@@ -533,9 +535,9 @@ export default function RegisterPage() {
               {/* Lien de connexion */}
               <div className="text-center pt-6">
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Vous avez déjà un compte ?{' '}
+                  {t('auth_register_have_account')}{' '}
                   <Link href="/login" className="font-semibold text-[#d23f26] hover:text-[#b83220] transition-colors inline-flex items-center gap-1">
-                    Se connecter
+                    {t('auth_register_login')}
                     <ArrowRight className="w-4 h-4" />
                   </Link>
                 </p>

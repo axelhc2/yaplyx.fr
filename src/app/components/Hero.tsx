@@ -4,8 +4,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Shield, Zap, Lock, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Hero() {
+  const { t } = useTranslation();
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -106,17 +108,17 @@ export default function Hero() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-slate-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-slate-200/60 dark:border-gray-800/50 shadow-sm backdrop-blur-sm">
               <Shield className="w-3.5 h-3.5 text-[#d23f26]" />
-              <span className="text-xs font-semibold text-slate-700 dark:text-gray-300">Cluster firewall nouvelle génération</span>
+              <span className="text-xs font-semibold text-slate-700 dark:text-gray-300">{t('hero_badge')}</span>
             </div>
 
             {/* Titre principal avec effets avancés */}
             <div className="relative">
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight relative z-10">
-                Gérez tous vos
+                {t('hero_title_1')}
                 <br />
                 <span className="relative">
                   <span className="bg-gradient-to-r from-[#d23f26] to-[#b83220] bg-clip-text text-transparent">
-                    firewalls en un clic
+                    {t('hero_title_2')}
                   </span>
                   {/* Soulignement zig-zag animé */}
                   <svg
@@ -142,16 +144,15 @@ export default function Hero() {
 
             {/* Description */}
             <p className="text-base text-slate-600 dark:text-gray-400 max-w-xl leading-relaxed">
-              Synchronisation automatique des règles sur tous vos serveurs.
-              Ajout, modification, déploiement — tout est centralisé et instantané.
+              {t('hero_description')}
             </p>
 
             {/* Points clés */}
             <div className="space-y-3">
               {[
-                'Déploiement en moins de 3 secondes',
-                'Synchronisation automatique multi-serveurs',
-                'Interface intuitive et sécurisée'
+                t('hero_feature_1'),
+                t('hero_feature_2'),
+                t('hero_feature_3')
               ].map((feature, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <div className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-r from-[#d23f26] to-[#b83220] shadow-sm">
@@ -198,7 +199,7 @@ export default function Hero() {
                   {/* Glow effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-[#d23f26] to-[#b83220] blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300 -z-10" />
 
-                  Commencer gratuitement
+                  {t('hero_cta_start')}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform relative z-10" />
 
                 </Link>
@@ -211,7 +212,7 @@ export default function Hero() {
                 {/* Effet de ripple au hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-100/50 dark:via-slate-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                Voir la démo
+                {t('hero_cta_demo')}
 
                 {/* Flèche animée */}
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -234,13 +235,13 @@ export default function Hero() {
                     <Shield className="w-4 h-4 text-white" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-900 dark:text-white">Yaplyx Dashboard</div>
-                    <div className="text-xs text-slate-500 dark:text-gray-400">Tous les serveurs</div>
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">{t('hero_dashboard_title')}</div>
+                    <div className="text-xs text-slate-500 dark:text-gray-400">{t('hero_dashboard_all_servers')}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50" />
-                  <span className="text-xs text-slate-600 dark:text-gray-400 font-medium">En ligne</span>
+                  <span className="text-xs text-slate-600 dark:text-gray-400 font-medium">{t('hero_dashboard_online')}</span>
                 </div>
               </div>
 
@@ -250,21 +251,21 @@ export default function Hero() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-gradient-to-br from-slate-50 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 border border-slate-200/60 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="text-2xl font-bold text-slate-900 dark:text-white mb-1">127</div>
-                    <div className="text-xs font-medium text-slate-600 dark:text-gray-400">Serveurs</div>
+                    <div className="text-xs font-medium text-slate-600 dark:text-gray-400">{t('hero_dashboard_servers')}</div>
                   </div>
                   <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-800/30 rounded-xl p-4 border border-green-200/60 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="text-2xl font-bold text-green-700 dark:text-green-400 mb-1">99.9%</div>
-                    <div className="text-xs font-medium text-green-600 dark:text-gray-400">Synchronisé</div>
+                    <div className="text-xs font-medium text-green-600 dark:text-gray-400">{t('hero_dashboard_synced')}</div>
                   </div>
                   <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/30 dark:to-rose-800/30 rounded-xl p-4 border border-red-200/60 dark:border-gray-800/50 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="text-2xl font-bold text-[#d23f26] mb-1">42</div>
-                    <div className="text-xs font-medium text-red-600 dark:text-gray-400">Règles actives</div>
+                    <div className="text-xs font-medium text-red-600 dark:text-gray-400">{t('hero_dashboard_active_rules')}</div>
                   </div>
                 </div>
 
                 {/* Graphique */}
                 <div className="bg-slate-50 dark:bg-gray-800/50 rounded-lg p-4 border border-slate-200/60 dark:border-gray-800/50">
-                  <div className="text-xs font-semibold text-slate-700 dark:text-gray-300 mb-3">Activité des déploiements</div>
+                  <div className="text-xs font-semibold text-slate-700 dark:text-gray-300 mb-3">{t('hero_dashboard_activity')}</div>
                   <div className="flex items-end justify-between h-20 gap-1.5">
                     {[45, 68, 52, 82, 65, 92, 78].map((h, i) => (
                       <div
@@ -281,15 +282,15 @@ export default function Hero() {
 
                 {/* Actions récentes */}
                 <div className="space-y-2">
-                  <div className="text-xs font-semibold text-slate-700 dark:text-gray-300">Activité récente</div>
+                  <div className="text-xs font-semibold text-slate-700 dark:text-gray-300">{t('hero_dashboard_recent')}</div>
                   <div className="space-y-2">
                     <div className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-gray-800/50 rounded-lg border border-slate-200/60 dark:border-gray-800/50">
                       <div className="w-7 h-7 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
                         <Zap className="w-3.5 h-3.5 text-green-600 dark:text-green-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-slate-900 dark:text-white truncate">Règle #42 déployée</div>
-                        <div className="text-xs text-slate-500 dark:text-gray-400">Il y a 2 minutes</div>
+                        <div className="text-xs font-medium text-slate-900 dark:text-white truncate">{t('hero_dashboard_rule_deployed')}</div>
+                        <div className="text-xs text-slate-500 dark:text-gray-400">{t('hero_dashboard_minutes_ago')}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2.5 p-2.5 bg-slate-50 dark:bg-gray-800/50 rounded-lg border border-slate-200/60 dark:border-gray-800/50">
@@ -297,8 +298,8 @@ export default function Hero() {
                         <Lock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-500" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs font-medium text-slate-900 dark:text-white truncate">Serveur fr1.yaplyx.net ajouté</div>
-                        <div className="text-xs text-slate-500 dark:text-gray-400">Il y a 8 minutes</div>
+                        <div className="text-xs font-medium text-slate-900 dark:text-white truncate">{t('hero_dashboard_server_added')}</div>
+                        <div className="text-xs text-slate-500 dark:text-gray-400">{t('hero_dashboard_8min_ago')}</div>
                       </div>
                     </div>
                   </div>
@@ -314,10 +315,10 @@ export default function Hero() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
             {[
-              { value: '300+', label: 'Équipes actives' },
-              { value: '8 400+', label: 'Serveurs protégés' },
-              { value: '99.99%', label: 'Uptime mensuel' },
-              { value: '< 3s', label: 'Déploiement moyen' }
+              { value: '300+', label: t('hero_stats_teams') },
+              { value: '8 400+', label: t('hero_stats_servers') },
+              { value: '99.99%', label: t('hero_stats_uptime') },
+              { value: '< 3s', label: t('hero_stats_deploy') }
             ].map((stat, i) => (
               <div key={i} className="text-center">
                 <div className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-1">{stat.value}</div>

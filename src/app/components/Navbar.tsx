@@ -5,13 +5,14 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Moon, Sun, Monitor, Globe, ChevronDown, Check, Menu, X } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 export default function Navbar() {
+  const { language, setLanguage, t } = useTranslation();
   const [darkMode, setDarkMode] = useState<'light' | 'dark' | 'system'>('system');
   const [scrolled, setScrolled] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [lang, setLang] = useState('FR');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,9 +40,8 @@ export default function Navbar() {
   }, [darkMode]);
 
   const languages = [
-    { code: 'FR', name: 'Français', flag: 'FR' },
-    { code: 'EN', name: 'English', flag: 'GB' },
-    { code: 'ES', name: 'Español', flag: 'ES' },
+    { code: 'FR' as const, name: t('navbar_lang_fr'), flag: '🇫🇷' },
+    { code: 'EN' as const, name: t('navbar_lang_en'), flag: '🇬🇧' },
   ];
 
   return (
@@ -58,7 +58,7 @@ export default function Navbar() {
                 className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition font-medium"
               >
                 <Globe className="w-3.5 h-3.5" />
-                <span className="text-xs font-semibold">{lang}</span>
+                <span className="text-xs font-semibold">{language}</span>
                 <ChevronDown className={`w-3 h-3 transition-transform ${langOpen ? 'rotate-180' : ''}`} />
               </button>
 
@@ -67,12 +67,12 @@ export default function Navbar() {
                   {languages.map((item) => (
                     <button
                       key={item.code}
-                      onClick={() => { setLang(item.code); setLangOpen(false); }}
+                      onClick={() => { setLanguage(item.code); setLangOpen(false); }}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
                     >
                       <span className="text-lg">{item.flag}</span>
                       <span className="flex-1 text-left">{item.name}</span>
-                      {lang === item.code && <Check className="w-4 h-4 text-[#d23f26]" />}
+                      {language === item.code && <Check className="w-4 h-4 text-[#d23f26]" />}
                     </button>
                   ))}
                 </div>
@@ -92,7 +92,7 @@ export default function Navbar() {
                 ))}
               </div>
               <Link href="/login" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm">
-                Connexion
+                {t('navbar_login')}
               </Link>
             </div>
 
@@ -122,17 +122,17 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden lg:flex items-center gap-10 text-sm font-medium text-gray-700 dark:text-gray-300">
-              <Link href="/" className="hover:text-gray-900 dark:hover:text-white transition">Accueil</Link>
-              <Link href="/offres" className="hover:text-gray-900 dark:hover:text-white transition">Offres</Link>
-              <Link href="/explications" className="hover:text-gray-900 dark:hover:text-white transition">Explications</Link>
-              <Link href="/contact" className="hover:text-gray-900 dark:hover:text-white transition">Contact</Link>
+              <Link href="/" className="hover:text-gray-900 dark:hover:text-white transition">{t('navbar_home')}</Link>
+              <Link href="/offres" className="hover:text-gray-900 dark:hover:text-white transition">{t('navbar_offers')}</Link>
+              <Link href="/explications" className="hover:text-gray-900 dark:hover:text-white transition">{t('navbar_explanations')}</Link>
+              <Link href="/contact" className="hover:text-gray-900 dark:hover:text-white transition">{t('navbar_contact')}</Link>
             </div>
 
             <Link
               href="/commencer"
               className="px-5 py-2 text-sm font-semibold text-white bg-[#d23f26] hover:bg-[#b83220] rounded-full transition-all hover:scale-105 shadow-md hidden sm:block"
             >
-              Commencer
+              {t('navbar_start')}
             </Link>
           </div>
         </div>
@@ -147,7 +147,7 @@ export default function Navbar() {
           {/* Panel menu */}
           <div className="relative h-full bg-white dark:bg-gray-950 shadow-2xl">
             <div className="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-800">
-              <span className="text-lg font-semibold">Menu</span>
+              <span className="text-lg font-semibold">{t('navbar_menu')}</span>
               <button onClick={() => setMobileOpen(false)}>
                 <X className="w-6 h-6 text-gray-600 dark:text-gray-400" />
               </button>
@@ -155,16 +155,16 @@ export default function Navbar() {
 
             <nav className="p-6 space-y-6">
               <Link href="/" onClick={() => setMobileOpen(false)} className="block text-lg font-medium text-gray-900 dark:text-white hover:text-[#d23f26] transition">
-                Accueil
+                {t('navbar_home')}
               </Link>
               <Link href="/offres" onClick={() => setMobileOpen(false)} className="block text-lg font-medium text-gray-900 dark:text-white hover:text-[#d23f26] transition">
-                Offres
+                {t('navbar_offers')}
               </Link>
               <Link href="/explications" onClick={() => setMobileOpen(false)} className="block text-lg font-medium text-gray-900 dark:text-white hover:text-[#d23f26] transition">
-                Explications
+                {t('navbar_explanations')}
               </Link>
               <Link href="/contact" onClick={() => setMobileOpen(false)} className="block text-lg font-medium text-gray-900 dark:text-white hover:text-[#d23f26] transition">
-                Contact
+                {t('navbar_contact')}
               </Link>
             </nav>
 
@@ -174,10 +174,10 @@ export default function Navbar() {
                 onClick={() => setMobileOpen(false)}
                 className="block w-full text-center py-3 text-white bg-[#d23f26] hover:bg-[#b83220] rounded-xl font-semibold shadow-lg transition"
               >
-                Commencer
+                {t('navbar_start')}
               </Link>
               <Link href="/login" onClick={() => setMobileOpen(false)} className="block text-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white">
-                Connexion
+                {t('navbar_login')}
               </Link>
             </div>
           </div>

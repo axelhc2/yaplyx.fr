@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Shield, Mail, Lock, ArrowRight, LogIn, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 
 function LoginForm() {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -24,7 +26,7 @@ function LoginForm() {
     setLoaded(true);
     // Vérifier si l'utilisateur vient de s'inscrire
     if (searchParams.get('registered') === 'true') {
-      setSuccess('Votre compte a été créé avec succès ! Connectez-vous maintenant.');
+      setSuccess(t('auth_login_success'));
     }
   }, [searchParams]);
 
@@ -56,7 +58,7 @@ function LoginForm() {
 
       // Vérifier si la réponse est vide ou 404
       if (response.status === 404 || !response.ok) {
-        setError('Une erreur est survenue lors de la connexion');
+        setError(t('auth_login_error'));
         setLoading(false);
         return;
       }
@@ -64,7 +66,7 @@ function LoginForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Une erreur est survenue lors de la connexion');
+        setError(data.error || t('auth_login_error'));
         setLoading(false);
         return;
       }
@@ -130,10 +132,10 @@ function LoginForm() {
               <LogIn className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 bg-clip-text">
-              Connexion
+              {t('auth_login_title')}
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
-              Connectez-vous à votre compte Yaplyx
+              {t('auth_login_subtitle')}
             </p>
           </div>
 
@@ -163,7 +165,7 @@ function LoginForm() {
               <div className="space-y-2 mb-6">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <Mail className="w-4 h-4" />
-                  Adresse courriel *
+                  {t('auth_login_email')}
                 </Label>
                 <Input
                   id="email"
@@ -181,7 +183,7 @@ function LoginForm() {
               <div className="space-y-2 mb-6">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <Lock className="w-4 h-4" />
-                  Mot de passe *
+                  {t('auth_login_password')}
                 </Label>
                 <Input
                   id="password"
@@ -202,13 +204,13 @@ function LoginForm() {
                     type="checkbox"
                     className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-[#d23f26] focus:ring-[#d23f26]"
                   />
-                  <span>Se souvenir de moi</span>
+                  <span>{t('auth_login_remember')}</span>
                 </label>
                 <Link
                   href="/auth/forgot-password"
                   className="text-sm font-medium text-[#d23f26] hover:text-[#b83220] transition-colors"
                 >
-                  Mot de passe oublié ?
+                  {t('auth_login_forgot')}
                 </Link>
               </div>
 
@@ -221,11 +223,11 @@ function LoginForm() {
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Connexion en cours...
+                    {t('auth_login_loading')}
                   </span>
                 ) : (
                   <span className="flex items-center justify-center gap-2">
-                    Se connecter
+                    {t('auth_login_submit')}
                     <ArrowRight className="w-5 h-5" />
                   </span>
                 )}
@@ -238,7 +240,7 @@ function LoginForm() {
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-4 bg-white/70 dark:bg-[#0A0A0A] text-gray-500 dark:text-gray-400">
-                    Nouveau sur Yaplyx ?
+                    {t('auth_login_new')}
                   </span>
                 </div>
               </div>
@@ -250,7 +252,7 @@ function LoginForm() {
                   className="inline-flex items-center justify-center gap-2 w-full h-12 text-base font-semibold text-gray-900 dark:text-white bg-white/50 dark:bg-[#1A1A1A] border border-gray-200/50 dark:border-gray-700/50 rounded-xl hover:bg-gray-50/50 dark:hover:bg-[#252525] transition-all duration-300"
                 >
                   <Shield className="w-5 h-5" />
-                  Créer un compte
+                  {t('auth_login_create')}
                 </Link>
               </div>
             </div>
@@ -258,13 +260,13 @@ function LoginForm() {
             {/* Informations supplémentaires */}
             <div className="text-center">
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                En vous connectant, vous acceptez nos{' '}
+                {t('auth_login_terms')}{' '}
                 <Link href="/terms" className="text-[#d23f26] hover:underline">
-                  conditions d'utilisation
+                  {t('auth_login_terms_link')}
                 </Link>
-                {' '}et notre{' '}
+                {' '}{t('auth_login_and')}{' '}
                 <Link href="/privacy" className="text-[#d23f26] hover:underline">
-                  politique de confidentialité
+                  {t('auth_login_privacy_link')}
                 </Link>
               </p>
             </div>

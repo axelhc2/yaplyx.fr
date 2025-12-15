@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
+import { t } from '@/lib/i18n-server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,16 +10,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Déconnexion réussie',
+      message: t(request, 'api_success_logout'),
     });
   } catch (error: any) {
     console.error('Erreur lors de la déconnexion:', error);
     return NextResponse.json(
-      { error: 'Erreur lors de la déconnexion' },
+      { error: t(request, 'api_error_logout') },
       { status: 500 }
     );
   }
 }
+
+
+
+
+
 
 
 

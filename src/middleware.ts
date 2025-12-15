@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyCSRFToken } from '@/lib/csrf';
 
 /**
+ * Routes API publiques (accessibles depuis n'importe où, sans protection)
+ */
+const PUBLIC_ROUTES = [
+  '/api/ip', // API publique pour récupérer l'IP
+];
+
+/**
  * Routes API qui peuvent être appelées depuis le navigateur (même origine)
  * Ces routes sont accessibles depuis le frontend Next.js mais pas depuis curl/externe
  */
@@ -34,6 +41,13 @@ function isBrowserAccessibleRoute(pathname: string): boolean {
  */
 function isExternalWebhookRoute(pathname: string): boolean {
   return EXTERNAL_WEBHOOK_ROUTES.some(route => pathname.startsWith(route));
+}
+
+/**
+ * Vérifie si une route API est publique (accessible sans protection)
+ */
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 }
 
 /**
@@ -180,6 +194,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Laisser passer les routes publiques (accessibles sans protection)
+  if (isPublicRoute(pathname)) {
+    const response = NextResponse.next();
+    return addSecurityHeaders(response);
+  }
+
   // Laisser passer les webhooks externes (ils ont leur propre système de vérification)
   if (isExternalWebhookRoute(pathname)) {
     return NextResponse.next();
@@ -257,6 +277,11 @@ export const config = {
   // Le middleware reste léger (vérification de cookie uniquement)
   runtime: 'nodejs',
 };
+
+
+
+
+
 
 
 

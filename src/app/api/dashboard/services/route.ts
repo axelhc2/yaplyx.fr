@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
 
 /**
- * Route API pour récupérer les services de l'utilisateur
+ * Route API pour récupérer les services de l'utilisateur avec leurs clusters
  */
 export async function GET(request: NextRequest) {
   try {
@@ -18,16 +18,23 @@ export async function GET(request: NextRequest) {
 
     const userId = typeof session.user.id === 'string' ? parseInt(session.user.id) : session.user.id;
 
-    // Récupérer tous les services de l'utilisateur avec leurs clusters
+    // Récupérer tous les services de l'utilisateur avec leurs clusters et offres
     const services = await prisma.service.findMany({
       where: {
         userId: userId as number,
       },
       include: {
+        offer: {
+          select: {
+            name: true,
+          },
+        },
         clusters: {
           select: {
             id: true,
+            url: true,
           },
+          take: 1, // On prend juste le premier cluster
         },
       },
       orderBy: {
@@ -44,6 +51,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
 
 
