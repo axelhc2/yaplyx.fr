@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
+import { sendPaymentConfirmationEmail } from '@/lib/Mail';
+import { generateInvoicePdf } from '@/lib/invoice-pdf';
 
 /**
  * Route API pour renouveler un service existant
@@ -123,6 +125,56 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Envoyer l'email de confirmation de paiement avec facture PDF (non-bloquant)
+    Promise.resolve().then(async () => {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+          },
+        });
+
+        if (user) {
+          const invoicePdfBuffer = await generateInvoicePdf(invoice.id);
+          
+          const priceValue = typeof invoice.price === 'object' && invoice.price !== null && 'toNumber' in invoice.price
+            ? (invoice.price as any).toNumber()
+            : typeof invoice.price === 'number'
+            ? invoice.price
+            : parseFloat(String(invoice.price));
+
+          await sendPaymentConfirmationEmail(
+            {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            {
+              fullInvoiceNumber: invoice.fullInvoiceNumber,
+              price: priceValue,
+              paymentDate: invoice.paymentDate,
+            },
+            {
+              name: service.name,
+              description: service.description,
+            },
+            {
+              name: service.offer.name,
+            },
+            invoicePdfBuffer
+          );
+        }
+      } catch (error: any) {
+        console.error('Erreur lors de l\'envoi de l\'email de confirmation de paiement:', error);
+        // Ne pas bloquer le renouvellement si l'email échoue
+      }
+    });
+
     return NextResponse.json({
       success: true,
       service: updatedService,
@@ -136,4 +188,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+
+
 

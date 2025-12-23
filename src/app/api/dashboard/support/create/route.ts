@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
         userId: userId as number,
         author,
         text: message,
-        img: imagePaths.length > 0 ? imagePaths : null,
+        img: imagePaths.length > 0 ? imagePaths : undefined,
       },
     });
 

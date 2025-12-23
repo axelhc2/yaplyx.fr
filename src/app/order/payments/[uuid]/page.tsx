@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Building2, MapPin, Mail, FileText, Shield, CheckCircle2, CreditCard } from 'lucide-react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n';
 
 function PaymentsPageContent() {
+  const { t, language } = useTranslation();
   const params = useParams();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
@@ -58,7 +60,8 @@ function PaymentsPageContent() {
   }, [params.uuid, router]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    const locale = language === 'EN' ? 'en-US' : 'fr-FR';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: price % 1 === 0 ? 0 : 2,
@@ -95,7 +98,7 @@ function PaymentsPageContent() {
 
       // Vérifier si la réponse est vide ou 404
       if (response.status === 404 || !response.ok) {
-        router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent('Erreur lors de la création du paiement')}`);
+        router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent(t('payment_error_creation'))}`);
         return;
       }
 
@@ -104,11 +107,11 @@ function PaymentsPageContent() {
         // Rediriger vers la page de paiement Stripe
         window.location.href = data.url;
       } else {
-        router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent(data.error || 'Erreur lors de la création du paiement')}`);
+        router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent(data.error || t('payment_error_creation'))}`);
       }
     } catch (error: any) {
       console.error('Erreur lors de la création de la session Stripe:', error);
-      router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent(error.message || 'Une erreur est survenue')}`);
+      router.push(`/order/payments/${params.uuid}/cancel?error=${encodeURIComponent(error.message || t('payment_error_occurred'))}`);
     } finally {
       setProcessingPayment(false);
     }
@@ -140,17 +143,17 @@ function PaymentsPageContent() {
               <div className="flex items-center gap-3 mb-4">
                 <Building2 className="w-5 h-5 text-[#d23f26]" />
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Adresse de facturation
+                  {t('payment_billing_address_title')}
                 </h2>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Pensez à vérifier votre adresse de facturation. Si vous souhaitez la corriger, rendez-vous dans votre espace client rubrique Mon compte / Mon profil.
+                {t('payment_billing_address_check')}
               </p>
 
               <div className="space-y-3">
                 {hasCompany && (
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Organisation :</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('payment_billing_organization')}</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {user.companyName}
                       {user.vatNumber && ` (${user.vatNumber})`}
@@ -159,16 +162,16 @@ function PaymentsPageContent() {
                 )}
 
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Nom :</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('payment_billing_name')}</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {user.firstName} {user.lastName}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Adresse :</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('payment_billing_address')}</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
-                    {user.billingAddress || 'Non renseignée'}
+                    {user.billingAddress || t('payment_billing_not_provided')}
                     {user.billingAddress2 && `, ${user.billingAddress2}`}
                     {user.billingCity && `, ${user.billingCity}`}
                     {user.billingPostalCode && ` ${user.billingPostalCode}`}
@@ -177,7 +180,7 @@ function PaymentsPageContent() {
                 </div>
 
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Email :</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('payment_billing_email')}</p>
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {user.email}
                   </p>
@@ -190,7 +193,7 @@ function PaymentsPageContent() {
               <div className="flex items-center gap-3 mb-4">
                 <FileText className="w-5 h-5 text-[#d23f26]" />
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Accepter les termes et conditions
+                  {t('payment_accept_terms_title')}
                 </h2>
               </div>
 
@@ -201,7 +204,7 @@ function PaymentsPageContent() {
                   className="flex items-center gap-2 text-sm text-[#d23f26] hover:underline"
                 >
                   <FileText className="w-4 h-4" />
-                  Conditions générales de vente (Visualiser en PDF)
+                  {t('payment_cgv_link')}
                 </Link>
                 <Link
                   href="/cgv-cluster-firewall"
@@ -209,7 +212,7 @@ function PaymentsPageContent() {
                   className="flex items-center gap-2 text-sm text-[#d23f26] hover:underline"
                 >
                   <FileText className="w-4 h-4" />
-                  Conditions Particulières Service de cluster firewall (Visualiser en PDF)
+                  {t('payment_cgv_cluster_link')}
                 </Link>
               </div>
 
@@ -222,7 +225,7 @@ function PaymentsPageContent() {
                     className="mt-1"
                   />
                   <label htmlFor="terms" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                    J'ai pris connaissance et j'accepte les conditions générales, l'annexe relative au traitement des données personnelles et les conditions particulières de services d'HOLYCLOUD.
+                    {t('payment_accept_terms_checkbox')}
                   </label>
                 </div>
 
@@ -234,7 +237,7 @@ function PaymentsPageContent() {
                     className="mt-1"
                   />
                   <label htmlFor="execution" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                    J'accepte l'exécution immédiate de ma commande.
+                    {t('payment_accept_execution_checkbox')}
                   </label>
                 </div>
               </div>
@@ -245,7 +248,7 @@ function PaymentsPageContent() {
               <div className="flex items-center gap-3 mb-4">
                 <CreditCard className="w-5 h-5 text-[#d23f26]" />
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Méthode de paiement
+                  {t('payment_method_title')}
                 </h2>
               </div>
 
@@ -275,10 +278,10 @@ function PaymentsPageContent() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        Crypto-monnaie
+                        {t('payment_crypto')}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        via OxaPay
+                        {t('payment_via_oxapay')}
                       </p>
                     </div>
                   </div>
@@ -309,10 +312,10 @@ function PaymentsPageContent() {
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        Carte bancaire
+                        {t('payment_card')}
                       </p>
                       <p className="text-xs text-gray-600 dark:text-gray-400">
-                        via Stripe
+                        {t('payment_via_stripe')}
                       </p>
                     </div>
                   </div>
@@ -323,7 +326,7 @@ function PaymentsPageContent() {
               {paymentMethod === 'oxapay' && (
                 <div className="mt-6 pt-6 border-t border-gray-200/50 dark:border-[#1A1A1A]">
                   <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                    Le paiement via OxaPay sera disponible prochainement.
+                    {t('payment_oxapay_coming_soon')}
                   </p>
                 </div>
               )}
@@ -332,7 +335,7 @@ function PaymentsPageContent() {
             {/* Annonce droit de rétractation */}
             <div className="bg-blue-50/80 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-xl p-4">
               <p className="text-xs text-blue-800 dark:text-blue-200 leading-relaxed">
-                <strong>Rappel pour les consommateurs - droit de rétractation :</strong> Le client consommateur dispose d'un droit de rétractation de 14 jours à compter de la date de commande. En cas de rétractation, le client sera remboursé sous 30 jours après la demande des sommes initialement versées, déduction faite des jours de services consommés (prorata temporis).
+                <strong>{t('payment_withdrawal_reminder_title')}</strong> {t('payment_withdrawal_reminder_text')}
               </p>
             </div>
 
@@ -346,10 +349,10 @@ function PaymentsPageContent() {
                 {processingPayment ? (
                   <span className="flex items-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Redirection vers Stripe...
+                    {t('payment_redirecting_to_stripe')}
                   </span>
                 ) : (
-                  'Procéder au paiement'
+                  t('payment_proceed_to_payment')
                 )}
               </Button>
             )}
@@ -359,15 +362,15 @@ function PaymentsPageContent() {
           <div className="lg:col-span-1">
             <div className="sticky top-8 bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-5">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Récapitulatif
+                {t('payment_summary_title')}
               </h2>
 
               <div className="space-y-3 mb-5">
                 <div className="flex items-center justify-between pb-3">
                   <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Produit</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">{t('payment_summary_product')}</p>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Commande #{params.uuid?.toString().substring(0, 8)}
+                      {t('payment_summary_order')}{params.uuid?.toString().substring(0, 8)}
                     </p>
                   </div>
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -376,7 +379,7 @@ function PaymentsPageContent() {
                 </div>
 
                 <div className="flex items-center justify-between pt-3 border-t border-gray-200/50 dark:border-[#1A1A1A]">
-                  <span className="text-sm font-semibold text-gray-900 dark:text-white">Total HT</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white">{t('payment_summary_total_ht')}</span>
                   <span className="text-xl font-bold text-[#d23f26]">
                     {formatPrice(totalHT)}
                   </span>
@@ -388,19 +391,19 @@ function PaymentsPageContent() {
                 <div className="flex items-start gap-2">
                   <Shield className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-gray-700 dark:text-gray-300">
-                    Satisfait ou remboursé 30 jours
+                    {t('payment_guarantee_satisfaction')}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-gray-700 dark:text-gray-300">
-                    Support client français 7j/7
+                    {t('payment_guarantee_support')}
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
                   <Shield className="w-4 h-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
                   <p className="text-xs text-gray-700 dark:text-gray-300">
-                    Paiement 100% sécurisé SSL
+                    {t('payment_guarantee_secure')}
                   </p>
                 </div>
               </div>

@@ -234,7 +234,7 @@ export default function ServicesPage() {
                       {/* Message et bouton au-dessus de l'overlay */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-4">
                         <p className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 text-center">
-                          Votre service est expiré.
+                          {t('dashboard_services_expired')}
                         </p>
                         <button
                           onClick={(e) => {
@@ -243,7 +243,7 @@ export default function ServicesPage() {
                           }}
                           className="px-5 py-2.5 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-lg font-semibold text-sm hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30 hover:scale-105"
                         >
-                          Renouveler mon service
+                          {t('dashboard_services_renew')}
                         </button>
                       </div>
                     </div>

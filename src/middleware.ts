@@ -86,7 +86,10 @@ function isSameOriginRequest(request: NextRequest): boolean {
                          (originUrl.hostname === 'localhost' || originUrl.hostname === '127.0.0.1');
       const isSameHost = originUrl.host === host;
       
-      if (isSameHost || isLocalhost) {
+      // Autoriser aussi si le hostname correspond (ignore le port pour plus de flexibilité)
+      const isSameHostname = originUrl.hostname === host?.split(':')[0];
+      
+      if (isSameHost || isLocalhost || isSameHostname) {
         return true;
       }
     } catch (e) {
@@ -103,7 +106,10 @@ function isSameOriginRequest(request: NextRequest): boolean {
                          (refererUrl.hostname === 'localhost' || refererUrl.hostname === '127.0.0.1');
       const isSameHost = refererUrl.host === host;
       
-      if (isSameHost || isLocalhost) {
+      // Autoriser aussi si le hostname correspond (ignore le port pour plus de flexibilité)
+      const isSameHostname = refererUrl.hostname === host?.split(':')[0];
+      
+      if (isSameHost || isLocalhost || isSameHostname) {
         return true;
       }
     } catch (e) {
@@ -212,16 +218,43 @@ export async function middleware(request: NextRequest) {
 
   // Pour les routes accessibles depuis le navigateur, vérifier la même origine
   if (isBrowserAccessibleRoute(pathname)) {
-    if (!isSameOriginRequest(request)) {
-      // Retourner une 404 Next.js standard pour masquer l'existence de l'API
-      return new NextResponse(null, { status: 404 });
-    }
-
-    // Routes d'authentification : CSRF optionnel (l'utilisateur n'est pas encore authentifié)
+    // Routes d'authentification : vérification plus souple (l'utilisateur n'est pas encore authentifié)
     const isAuthRoute = pathname.startsWith('/api/auth/login') || 
                         pathname.startsWith('/api/auth/signup') ||
                         pathname.startsWith('/api/csrf-token');
     
+    // Pour les routes d'auth, vérifier seulement qu'il y a un user-agent (pas curl)
+    if (isAuthRoute) {
+      const userAgent = request.headers.get('user-agent');
+      if (!userAgent) {
+        // Pas de user-agent = probablement curl → bloquer
+        return new NextResponse(
+          JSON.stringify({ error: 'Requête non autorisée' }),
+          { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      // Si user-agent présent, autoriser (même origine vérifiée côté client)
+    } else {
+      // Pour les autres routes, vérifier strictement la même origine
+      const sameOrigin = isSameOriginRequest(request);
+      if (!sameOrigin) {
+        // Log pour debug (uniquement en développement)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('Middleware: Requête bloquée - origine différente', {
+            pathname,
+            origin: request.headers.get('origin'),
+            referer: request.headers.get('referer'),
+            host: request.headers.get('host'),
+            userAgent: request.headers.get('user-agent'),
+          });
+        }
+        return new NextResponse(null, { status: 404 });
+      }
+    }
+
     // Vérifier CSRF pour les requêtes modifiantes (sauf routes d'auth)
     const isMutating = ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
     if (isMutating && !isAuthRoute) {

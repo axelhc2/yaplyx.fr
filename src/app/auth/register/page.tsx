@@ -130,17 +130,23 @@ export default function RegisterPage() {
         }),
       });
 
-      // Vérifier si la réponse est vide ou 404
-      if (response.status === 404 || !response.ok) {
-        setError(t('auth_register_error'));
-        setLoading(false);
-        return;
+      // Toujours parser le JSON pour récupérer le message d'erreur spécifique
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        // Si le JSON ne peut pas être parsé (404, etc.), utiliser l'erreur générique
+        if (response.status === 404 || !response.ok) {
+          setError(t('auth_register_error'));
+          setLoading(false);
+          return;
+        }
       }
 
-      const data = await response.json();
-
+      // Vérifier si la réponse est OK
       if (!response.ok) {
-        setError(data.error || t('auth_register_error'));
+        // Afficher le message d'erreur spécifique du serveur
+        setError(data?.error || t('auth_register_error'));
         setLoading(false);
         return;
       }

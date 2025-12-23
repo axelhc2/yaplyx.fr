@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
   },
   // Configuration pour éviter les problèmes avec Edge Runtime
   serverExternalPackages: ['@prisma/client', 'prisma'],
+  // Configuration pour améliorer la gestion des Server Actions
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
 };
 
 export default nextConfig;

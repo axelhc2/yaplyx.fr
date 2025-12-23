@@ -5,8 +5,10 @@ import { useSearchParams } from 'next/navigation';
 import { XCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 
 function CancelPageContent() {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
@@ -19,26 +21,26 @@ function CancelPageContent() {
           </div>
 
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-            Paiement non validé
+            {t('payment_cancel_title')}
           </h1>
 
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
             {error 
-              ? `Une erreur est survenue : ${error}`
-              : 'Votre paiement n\'a pas pu être traité. Veuillez réessayer ou contacter le support si le problème persiste.'
+              ? `${t('payment_cancel_error')} ${error}`
+              : t('payment_cancel_message')
             }
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/offres">
               <Button className="w-full sm:w-auto h-12 text-base font-semibold bg-gradient-to-r from-[#d23f26] to-[#b83220] hover:from-[#b83220] hover:to-[#a02a1a] text-white shadow-lg shadow-[#d23f26]/30">
-                Réessayer
+                {t('payment_cancel_retry')}
                 <RefreshCw className="w-5 h-5 ml-2" />
               </Button>
             </Link>
             <Link href="/dashboard">
               <Button variant="outline" className="w-full sm:w-auto h-12 text-base font-semibold">
-                Retour au dashboard
+                {t('payment_cancel_back_dashboard')}
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </Link>
@@ -60,6 +62,9 @@ export default function CancelPage() {
     </Suspense>
   );
 }
+
+
+
 
 
 

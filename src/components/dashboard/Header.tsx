@@ -229,7 +229,7 @@ export default function Header() {
               {/* Mes informations */}
               <DropdownMenuItem
                 className="px-4 py-3 cursor-pointer"
-                onClick={() => router.push('/dashboard/profile')}
+                onClick={() => router.push('/dashboard/settings')}
               >
                 <User className="w-4 h-4 mr-3 text-gray-600 dark:text-gray-400" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">{t('dashboard_header_my_info')}</span>

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Save, User, Mail, Phone, Building2, MapPin } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { fetchWithCSRF } from '@/lib/csrf-client';
+import { Modal } from '@/components/ui/modal';
 
 interface UserSettings {
   id: number;
@@ -29,6 +30,9 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<UserSettings | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalVariant, setModalVariant] = useState<'success' | 'error'>('success');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -100,14 +104,20 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json();
         setUser(data.user);
-        alert(t('dashboard_settings_success'));
+        setModalMessage(t('dashboard_settings_success'));
+        setModalVariant('success');
+        setModalOpen(true);
       } else {
         const errorData = await response.json();
-        alert(errorData.error || t('dashboard_settings_error'));
+        setModalMessage(errorData.error || t('dashboard_settings_error'));
+        setModalVariant('error');
+        setModalOpen(true);
       }
     } catch (error: any) {
       console.error('Erreur lors de la sauvegarde:', error);
-      alert(t('dashboard_settings_error'));
+      setModalMessage(t('dashboard_settings_error'));
+      setModalVariant('error');
+      setModalOpen(true);
     } finally {
       setSaving(false);
     }
@@ -389,8 +399,20 @@ export default function SettingsPage() {
           </form>
         </div>
       </div>
+
+      {/* Modal */}
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        variant={modalVariant}
+      >
+        <p>{modalMessage}</p>
+      </Modal>
     </div>
   );
 }
+
+
+
 
 

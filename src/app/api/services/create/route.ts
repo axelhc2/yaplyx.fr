@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
+import { notifySuccess } from '@/lib/Notify';
+import { sendPaymentConfirmationEmail } from '@/lib/Mail';
+import { generateInvoicePdf } from '@/lib/invoice-pdf';
 
 export async function POST(request: NextRequest) {
   try {
@@ -112,6 +115,104 @@ export async function POST(request: NextRequest) {
         paymentDate: new Date(),
         status: 1, // 1 = payé (le paiement vient d'être validé)
       },
+    });
+
+    // Récupérer les informations de l'utilisateur pour la notification
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+      },
+    });
+
+    // Formater la date de renouvellement
+    let renewalDateStr = 'À vie';
+    if (expiresAt) {
+      renewalDateStr = expiresAt.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    }
+
+    // Formater la période de renouvellement
+    let renewalPeriod = offer.period;
+    if (offer.period === 'month') {
+      renewalPeriod = 'Mensuel';
+    } else if (offer.period === 'year') {
+      renewalPeriod = 'Annuel';
+    } else if (offer.period === 'lifetime') {
+      renewalPeriod = 'À vie';
+    }
+
+    // Formater le prix (Decimal de Prisma)
+    const priceValue = typeof pricePaid === 'object' && pricePaid !== null && 'toNumber' in pricePaid
+      ? (pricePaid as any).toNumber()
+      : typeof pricePaid === 'number'
+      ? pricePaid
+      : parseFloat(String(pricePaid));
+    const formattedPrice = priceValue.toFixed(2).replace('.', ',');
+
+    // Envoyer la notification de nouvelle commande payée (non-bloquant)
+    Promise.resolve().then(() => {
+      if (user) {
+        const orderMessage = `<b>🛒 Nouvelle commande payée</b>
+
+<b>Email:</b> ${user.email}
+<b>Prénom:</b> ${user.firstName}
+<b>Nom:</b> ${user.lastName}
+<b>Offre:</b> ${offer.name}
+<b>Date de renouvellement:</b> ${renewalDateStr}
+<b>Période de renouvellement:</b> ${renewalPeriod}
+<b>Prix:</b> ${formattedPrice} €`;
+
+        notifySuccess(orderMessage).catch((err: any) => {
+          console.error('Impossible d\'envoyer la notification de commande:', err);
+        });
+      }
+    });
+
+    // Envoyer l'email de confirmation de paiement avec facture PDF (non-bloquant)
+    Promise.resolve().then(async () => {
+      try {
+        if (user) {
+          const invoicePdfBuffer = await generateInvoicePdf(invoice.id);
+          
+          const priceValue = typeof invoice.price === 'object' && invoice.price !== null && 'toNumber' in invoice.price
+            ? (invoice.price as any).toNumber()
+            : typeof invoice.price === 'number'
+            ? invoice.price
+            : parseFloat(String(invoice.price));
+
+          await sendPaymentConfirmationEmail(
+            {
+              id: user.id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
+            {
+              fullInvoiceNumber: invoice.fullInvoiceNumber,
+              price: priceValue,
+              paymentDate: invoice.paymentDate,
+            },
+            {
+              name: service.name,
+              description: service.description,
+            },
+            {
+              name: offer.name,
+            },
+            invoicePdfBuffer
+          );
+        }
+      } catch (error: any) {
+        console.error('Erreur lors de l\'envoi de l\'email de confirmation de paiement:', error);
+        // Ne pas bloquer la création du service si l'email échoue
+      }
     });
 
     return NextResponse.json({

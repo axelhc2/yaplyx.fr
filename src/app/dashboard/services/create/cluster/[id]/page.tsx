@@ -29,6 +29,7 @@ export default function CreateClusterPage() {
   const [installing, setInstalling] = useState(false);
   const [installationSuccess, setInstallationSuccess] = useState(false);
   const [installationError, setInstallationError] = useState<string | null>(null);
+  const [hasExistingCluster, setHasExistingCluster] = useState(false);
 
   // Créer automatiquement le domaine .yaplyx.online quand on sélectionne cette option
   useEffect(() => {
@@ -91,8 +92,18 @@ export default function CreateClusterPage() {
       return;
     }
 
+    // Vérifier si une installation est déjà en cours
+    const installationKey = `cluster_installing_${params.id}`;
+    if (sessionStorage.getItem(installationKey) === 'true') {
+      setInstallationError(t('cluster_create_installation_in_progress'));
+      return;
+    }
+
     setInstalling(true);
     setInstallationError(null);
+    
+    // Marquer l'installation comme en cours dans sessionStorage
+    sessionStorage.setItem(installationKey, 'true');
 
     try {
       const response = await fetchWithCSRF('/api/dashboard/install-cluster', {
@@ -113,6 +124,8 @@ export default function CreateClusterPage() {
       if (response.ok && data.success) {
         setInstallationSuccess(true);
         setInstallationError(null);
+        // Retirer le flag d'installation en cours
+        sessionStorage.removeItem(installationKey);
         // Rediriger vers la page du service après 2 secondes
         setTimeout(() => {
           router.push(`/dashboard/services/${params.id}`);
@@ -120,10 +133,14 @@ export default function CreateClusterPage() {
       } else {
         setInstallationSuccess(false);
         setInstallationError(data.error || t('cluster_create_error_install'));
+        // Retirer le flag en cas d'erreur
+        sessionStorage.removeItem(installationKey);
       }
     } catch (error: any) {
       setInstallationSuccess(false);
       setInstallationError(t('cluster_create_error_install'));
+      // Retirer le flag en cas d'erreur
+      sessionStorage.removeItem(installationKey);
     } finally {
       setInstalling(false);
     }
@@ -136,6 +153,26 @@ export default function CreateClusterPage() {
         if (!sessionResponse.ok) {
           router.push('/auth/login');
           return;
+        }
+
+        // Vérifier si le service a déjà un cluster
+        if (params?.id) {
+          const serviceResponse = await fetch(`/api/dashboard/services/${params.id}`);
+          if (serviceResponse.ok) {
+            const serviceData = await serviceResponse.json();
+            if (serviceData.service?.clusters && serviceData.service.clusters.length > 0) {
+              setHasExistingCluster(true);
+              setLoading(false);
+              return;
+            }
+          }
+        }
+
+        // Vérifier si une installation est en cours (sessionStorage)
+        const installationKey = `cluster_installing_${params?.id}`;
+        const isInstalling = sessionStorage.getItem(installationKey);
+        if (isInstalling === 'true') {
+          setInstalling(true);
         }
 
         const serverResponse = await fetch('/api/dashboard/servers/available');
@@ -151,7 +188,7 @@ export default function CreateClusterPage() {
     };
 
     loadServer();
-  }, [router]);
+  }, [router, params]);
 
   const handleVerifyDNS = async () => {
     if (!customDomain || !serverInfo) {
@@ -206,6 +243,33 @@ export default function CreateClusterPage() {
     );
   }
 
+  // Si le service a déjà un cluster, rediriger vers la page du service
+  if (hasExistingCluster) {
+    return (
+      <div className="bg-white dark:bg-black">
+        <div className="p-4 sm:p-6 lg:p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 sm:p-8 lg:p-12 text-center">
+              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <p className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Cluster déjà installé
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Ce service a déjà un cluster installé.
+              </p>
+              <button
+                onClick={() => router.push(`/dashboard/services/${params?.id}`)}
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-xl font-semibold hover:from-[#b83220] hover:to-[#a02a1a] transition-all"
+              >
+                Voir le service
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!serverInfo) {
     return (
       <div className="bg-white dark:bg-black">
@@ -240,6 +304,14 @@ export default function CreateClusterPage() {
             <p className="text-gray-600 dark:text-gray-400">
               {t('cluster_create_desc').replace('{id}', String(params?.id || ''))}
             </p>
+            {installing && (
+              <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/10 border border-blue-200 dark:border-blue-900/20 rounded-xl flex items-center gap-2">
+                <Loader2 className="w-5 h-5 animate-spin text-blue-600 dark:text-blue-400" />
+                <span className="text-sm text-blue-800 dark:text-blue-400 font-medium">
+                  Installation en cours... Veuillez ne pas quitter cette page.
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Domain Type Selection */}
@@ -544,6 +616,8 @@ export default function CreateClusterPage() {
     </div>
   );
 }
+
+
 
 
 

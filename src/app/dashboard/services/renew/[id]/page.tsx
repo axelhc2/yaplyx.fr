@@ -44,10 +44,10 @@ export default function RenewServicePage() {
   const [selectedDuration, setSelectedDuration] = useState<number>(1);
 
   const durations = [
-    { months: 1, label: '1 mois' },
-    { months: 3, label: '3 mois' },
-    { months: 6, label: '6 mois' },
-    { months: 12, label: '12 mois' },
+    { months: 1, label: t('dashboard_services_renew_1_month') },
+    { months: 3, label: t('dashboard_services_renew_3_months') },
+    { months: 6, label: t('dashboard_services_renew_6_months') },
+    { months: 12, label: t('dashboard_services_renew_12_months') },
   ];
 
   useEffect(() => {
@@ -129,10 +129,10 @@ export default function RenewServicePage() {
               className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[#d23f26] transition-colors mb-4"
             >
               <ArrowLeft className="w-4 h-4" />
-              Retour aux services
+              {t('dashboard_service_detail_back')}
             </Link>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Renouveler votre service
+              {t('dashboard_services_renew')}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               {service.offer.name}
@@ -142,7 +142,7 @@ export default function RenewServicePage() {
           {/* Spécificités de l'offre */}
           <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Spécificités de l'offre
+              {t('dashboard_services_renew_offer_features')}
             </h2>
 
             {/* Informations principales */}
@@ -150,7 +150,7 @@ export default function RenewServicePage() {
               <div className="flex items-center gap-3">
                 <Server className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Serveurs</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_servers')}</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-white">
                     {service.offer.servers}
                   </p>
@@ -160,7 +160,7 @@ export default function RenewServicePage() {
               <div className="flex items-center gap-3">
                 <Users className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Groupes</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_groups')}</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-white">
                     {service.offer.group}
                   </p>
@@ -170,7 +170,7 @@ export default function RenewServicePage() {
               <div className="flex items-center gap-3">
                 <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
                 <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Règles</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard_service_detail_rules')}</p>
                   <p className="text-lg font-bold text-gray-900 dark:text-white">
                     {service.offer.rules}
                   </p>
@@ -181,7 +181,7 @@ export default function RenewServicePage() {
             {/* Fonctionnalités */}
             <div className="border-t border-gray-200/50 dark:border-[#1A1A1A] pt-6">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Fonctionnalités incluses
+                {t('dashboard_services_renew_included_features')}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="flex items-center gap-3">
@@ -230,7 +230,7 @@ export default function RenewServicePage() {
           {/* Sélection de la durée */}
           <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-              Durée de renouvellement
+                {t('dashboard_services_renew_duration')}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {durations.map((duration) => (
@@ -262,19 +262,19 @@ export default function RenewServicePage() {
           <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-2xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-[10px] text-gray-600 dark:text-gray-400">Prix mensuel</p>
+                <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('dashboard_services_renew_monthly_price')}</p>
                 <p className="text-sm font-bold text-gray-900 dark:text-white">
                   {Number(service.offer.price).toFixed(2)} €
                 </p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] text-gray-600 dark:text-gray-400">Durée</p>
+                <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('dashboard_services_renew_duration')}</p>
                 <p className="text-sm font-bold text-gray-900 dark:text-white">
                   {selectedDuration} {selectedDuration > 1 ? 'mois' : 'mois'}
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] text-gray-600 dark:text-gray-400">Total</p>
+                <p className="text-[10px] text-gray-600 dark:text-gray-400">{t('dashboard_services_renew_total')}</p>
                 <p className="text-sm font-bold text-[#d23f26]">
                   {calculateTotalPrice().toFixed(2)} €
                 </p>
@@ -318,7 +318,7 @@ export default function RenewServicePage() {
               }}
               className="w-full px-4 py-2.5 bg-gradient-to-r from-[#d23f26] to-[#b83220] text-white rounded-lg font-semibold text-sm hover:from-[#b83220] hover:to-[#a02a1a] transition-all shadow-lg shadow-[#d23f26]/30 hover:scale-[1.02]"
             >
-              Procéder au paiement
+              {t('dashboard_services_renew_proceed_to_payment')}
             </button>
           </div>
         </div>

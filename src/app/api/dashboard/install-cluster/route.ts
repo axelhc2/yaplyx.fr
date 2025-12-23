@@ -3,33 +3,8 @@ import { randomUUID } from 'crypto';
 import prisma from '@/lib/prisma';
 import { getAuthenticatedSession } from '@/lib/auth-utils';
 import { t } from '@/lib/i18n-server';
-
-const TELEGRAM_BOT_TOKEN = '8578688168:AAEAtXxf72z2Ef2QqpXrQ6g4xVR70__Q5d4';
-const TELEGRAM_CHAT_ID = '5248234928';
-
-async function sendTelegramMessage(message: string) {
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: TELEGRAM_CHAT_ID,
-        text: message,
-        parse_mode: 'HTML',
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-      console.error('Erreur lors de l\'envoi du message Telegram:', errorData);
-    }
-  } catch (error) {
-    // Ne pas bloquer l'exécution si Telegram échoue
-    console.error('Erreur lors de l\'envoi du message Telegram:', error);
-  }
-}
+import { notifyError, notifySuccess } from '@/lib/Notify';
+import { sendClusterInstallationEmail } from '@/lib/Mail';
 
 /**
  * Route API pour installer un cluster
@@ -63,12 +38,23 @@ export async function POST(request: NextRequest) {
         id: parseInt(serviceId),
         userId: userId as number,
       },
+      include: {
+        clusters: true,
+      },
     });
 
     if (!service) {
       return NextResponse.json(
         { error: t(request, 'api_error_service_not_found') },
         { status: 404 }
+      );
+    }
+
+    // Vérifier si le service a déjà un cluster
+    if (service.clusters && service.clusters.length > 0) {
+      return NextResponse.json(
+        { error: 'Ce service a déjà un cluster installé' },
+        { status: 400 }
       );
     }
 
@@ -161,9 +147,9 @@ export async function POST(request: NextRequest) {
 <code>${fetchError.message || JSON.stringify(fetchError)}</code>
       `.trim();
 
-      // Envoyer sur Telegram (ne bloque pas si ça échoue)
-      sendTelegramMessage(errorMessage).catch(err => {
-        console.error('Impossible d\'envoyer le message Telegram:', err);
+      // Envoyer sur Telegram et Teams (ne bloque pas si ça échoue)
+      notifyError(errorMessage).catch(err => {
+        console.error('Impossible d\'envoyer les notifications:', err);
       });
 
       return NextResponse.json(
@@ -173,7 +159,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!installData.success) {
-      // Envoyer l'erreur sur Telegram
+      // Envoyer l'erreur sur Telegram et Teams
       const errorMessage = `
 <b>❌ Erreur d'installation de cluster</b>
 
@@ -191,9 +177,9 @@ export async function POST(request: NextRequest) {
 <code>${installData.error || JSON.stringify(installData)}</code>
       `.trim();
 
-      // Envoyer sur Telegram (ne bloque pas si ça échoue)
-      sendTelegramMessage(errorMessage).catch(err => {
-        console.error('Impossible d\'envoyer le message Telegram:', err);
+      // Envoyer sur Telegram et Teams (ne bloque pas si ça échoue)
+      notifyError(errorMessage).catch(err => {
+        console.error('Impossible d\'envoyer les notifications:', err);
       });
 
       // Ne pas renvoyer l'erreur détaillée au client
@@ -218,7 +204,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Envoyer le succès sur Telegram
+    // Envoyer le succès sur Telegram et Teams
     const successMessage = `
 <b>✅ Installation de cluster réussie</b>
 
@@ -236,9 +222,32 @@ export async function POST(request: NextRequest) {
 • Email: ${installData.login?.email || 'N/A'}
     `.trim();
 
-    // Envoyer sur Telegram (ne bloque pas si ça échoue)
-    sendTelegramMessage(successMessage).catch(err => {
-      console.error('Impossible d\'envoyer le message Telegram:', err);
+    // Envoyer sur Telegram et Teams (ne bloque pas si ça échoue)
+    notifySuccess(successMessage).catch(err => {
+      console.error('Impossible d\'envoyer les notifications:', err);
+    });
+
+    // Envoyer l'email avec les identifiants du cluster (non-bloquant)
+    Promise.resolve().then(async () => {
+      try {
+        await sendClusterInstallationEmail(
+          {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+          },
+          {
+            name: cluster.name,
+            url: cluster.url,
+            username: cluster.username,
+            password: cluster.password,
+          }
+        );
+      } catch (error: any) {
+        console.error('Erreur lors de l\'envoi de l\'email d\'installation du cluster:', error);
+        // Ne pas bloquer l'installation si l'email échoue
+      }
     });
 
     return NextResponse.json({
@@ -254,7 +263,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Erreur lors de l\'installation du cluster:', error);
     
-    // Envoyer l'erreur sur Telegram
+    // Envoyer l'erreur sur Telegram et Teams
     const errorMessage = `
 <b>❌ Erreur lors de l'installation de cluster</b>
 
@@ -262,9 +271,9 @@ export async function POST(request: NextRequest) {
 <code>${error.message || JSON.stringify(error)}</code>
     `.trim();
 
-    // Envoyer sur Telegram (ne bloque pas si ça échoue)
-    sendTelegramMessage(errorMessage).catch(err => {
-      console.error('Impossible d\'envoyer le message Telegram:', err);
+    // Envoyer sur Telegram et Teams (ne bloque pas si ça échoue)
+    notifyError(errorMessage).catch((err: any) => {
+      console.error('Impossible d\'envoyer les notifications:', err);
     });
 
     return NextResponse.json(

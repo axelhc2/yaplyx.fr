@@ -5,8 +5,10 @@ import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { CheckCircle2, ArrowRight, FileText, Download, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n';
 
 function SuccessPageContent() {
+  const { t, language } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const params = useParams();
@@ -171,7 +173,8 @@ function SuccessPageContent() {
   }, [params.uuid]);
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+    const locale = language === 'EN' ? 'en-US' : 'fr-FR';
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: price % 1 === 0 ? 0 : 2,
@@ -213,17 +216,17 @@ function SuccessPageContent() {
               </div>
 
               <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Paiement validé
+                {t('payment_success_title')}
               </h1>
 
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Votre paiement a été traité avec succès.
+                {t('payment_success_message')}
               </p>
 
               {loading && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-lg p-3 mb-4">
                   <p className="text-sm text-blue-800 dark:text-blue-200">
-                    {order && order.type === 'renew' ? 'Renouvellement de votre service en cours...' : 'Création de votre service en cours...'}
+                    {order && order.type === 'renew' ? t('payment_success_renewing') : t('payment_success_creating')}
                   </p>
                 </div>
               )}
@@ -232,8 +235,8 @@ function SuccessPageContent() {
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200/50 dark:border-green-800/50 rounded-lg p-3 mb-4">
                   <p className="text-sm text-green-800 dark:text-green-200">
                     {order?.type === 'renew' 
-                      ? '✓ Votre service a été renouvelé et votre facture a été générée.'
-                      : '✓ Votre service a été créé et votre facture a été générée.'}
+                      ? t('payment_success_renewed')
+                      : t('payment_success_created')}
                   </p>
                 </div>
               )}
@@ -241,7 +244,7 @@ function SuccessPageContent() {
               {sessionId && (
                 <div className="bg-gray-50 dark:bg-[#1A1A1A] rounded-lg p-3 mb-4">
                   <p className="text-xs text-gray-600 dark:text-gray-400">
-                    ID de transaction : <span className="font-mono text-gray-900 dark:text-white">{sessionId}</span>
+                    {t('payment_success_transaction_id')} <span className="font-mono text-gray-900 dark:text-white">{sessionId}</span>
                   </p>
                 </div>
               )}
@@ -251,7 +254,7 @@ function SuccessPageContent() {
               {order && offer && (
                 <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  {order.type === 'renew' ? 'Récapitulatif de votre renouvellement' : 'Récapitulatif de votre commande'}
+                  {order.type === 'renew' ? t('payment_success_summary_renew') : t('payment_success_summary_order')}
                 </h2>
 
                 <div className="space-y-4">
@@ -271,33 +274,33 @@ function SuccessPageContent() {
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Serveurs</p>
+                      <p className="text-gray-600 dark:text-gray-400">{t('payment_success_servers')}</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {offer.servers === 0 ? 'Illimités' : offer.servers}
+                        {offer.servers === 0 ? t('payment_success_unlimited') : offer.servers}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Groupes</p>
+                      <p className="text-gray-600 dark:text-gray-400">{t('payment_success_groups')}</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {offer.group === 0 ? 'Illimités' : offer.group}
+                        {offer.group === 0 ? t('payment_success_unlimited') : offer.group}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Règles</p>
+                      <p className="text-gray-600 dark:text-gray-400">{t('payment_success_rules')}</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {offer.rules === 0 ? 'Illimitées' : offer.rules}
+                        {offer.rules === 0 ? t('payment_success_unlimited_f') : offer.rules}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-600 dark:text-gray-400">Durée</p>
+                      <p className="text-gray-600 dark:text-gray-400">{t('payment_success_duration')}</p>
                       <p className="font-semibold text-gray-900 dark:text-white">
-                        {offer.period === 'lifetime' ? 'À vie' : `${order.duration || 1} mois`}
+                        {offer.period === 'lifetime' ? t('payment_success_lifetime') : `${order.duration || 1} ${t('payment_success_months')}`}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-[#1A1A1A]">
-                    <span className="text-lg font-semibold text-gray-900 dark:text-white">Total HT</span>
+                    <span className="text-lg font-semibold text-gray-900 dark:text-white">{t('payment_summary_total_ht')}</span>
                     <span className="text-xl font-bold text-[#d23f26]">
                       {formatPrice(order.price)}
                     </span>
@@ -310,16 +313,16 @@ function SuccessPageContent() {
               {invoice && (
                 <div className="bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-6">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                  Votre facture
+                  {t('payment_success_invoice_title')}
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  Facture n° {invoice.fullInvoiceNumber}
+                  {t('payment_success_invoice_number')} {invoice.fullInvoiceNumber}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link href={`/invoices/${invoice.id}`}>
                     <Button variant="outline" className="w-full sm:w-auto gap-2">
                       <Eye className="w-4 h-4" />
-                      Voir la facture
+                      {t('payment_success_view_invoice')}
                     </Button>
                   </Link>
                   <Button
@@ -327,7 +330,7 @@ function SuccessPageContent() {
                     className="w-full sm:w-auto gap-2 bg-gradient-to-r from-[#d23f26] to-[#b83220] hover:from-[#b83220] hover:to-[#a02a1a] text-white"
                   >
                     <Download className="w-4 h-4" />
-                    Télécharger en PDF
+                    {t('payment_success_download_pdf')}
                   </Button>
                 </div>
                 </div>
@@ -338,19 +341,19 @@ function SuccessPageContent() {
             <div className="lg:col-span-1">
               <div className="sticky top-8 bg-white/70 dark:bg-[#0A0A0A] backdrop-blur-2xl rounded-xl shadow-lg border border-gray-200/50 dark:border-[#1A1A1A] p-5">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Prochaines étapes
+                {t('payment_success_next_steps')}
               </h2>
 
               <div className="space-y-3">
                 <Link href="/dashboard">
                   <Button className="w-full h-11 text-sm font-semibold bg-gradient-to-r from-[#d23f26] to-[#b83220] hover:from-[#b83220] hover:to-[#a02a1a] text-white">
-                    Accéder au dashboard
+                    {t('payment_success_access_dashboard')}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
                 <Link href="/offres">
                   <Button variant="outline" className="mt-2 w-full h-11 text-sm font-semibold">
-                    Voir les offres
+                    {t('payment_success_view_offers')}
                   </Button>
                 </Link>
               </div>

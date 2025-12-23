@@ -28,6 +28,7 @@ model User {
   clusters      Cluster[]
   supportTickets Support[]
   supportReplies SupportReply[]
+  mails         Mail[]
 
   firstName     String    @db.Text
   lastName      String    @db.Text
@@ -249,6 +250,20 @@ model SupportReply {
   @@index([ticketId])
   @@index([userId])
   @@map("support_replies")
+}
+
+model Mail {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  subject   String   @db.Text
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("mail")
 }
 
 
